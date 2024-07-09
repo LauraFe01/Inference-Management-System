@@ -10,7 +10,7 @@ interface DatasetAttributes {
   userId: string;
 }
 
-interface DatasetCreationAttributes extends Optional<DatasetAttributes, 'id'> {}
+interface DatasetCreationAttributes extends DatasetAttributes {}
 
 class Dataset extends Model<DatasetAttributes, DatasetCreationAttributes> implements DatasetAttributes {
     public id!: string;
@@ -27,10 +27,12 @@ class Dataset extends Model<DatasetAttributes, DatasetCreationAttributes> implem
           id: {
             type: DataTypes.STRING,
             primaryKey: true,
+            unique: true
           },
           name: {
             type: DataTypes.STRING,
             allowNull: false,
+            unique: true
           },
           description: {
             type: DataTypes.STRING,

@@ -1,4 +1,4 @@
-import { Model, DataTypes, Optional } from 'sequelize';
+import { Model, DataTypes } from 'sequelize';
 import db from '../Config/db_config';
 
 interface SpectrogramAttributes {
@@ -7,7 +7,7 @@ interface SpectrogramAttributes {
   datasetId: string;
 }
 
-interface SpectrogramCreationAttributes extends Optional<SpectrogramAttributes, 'id'> {}
+interface SpectrogramCreationAttributes extends SpectrogramAttributes {}
 
 class Spectrogram extends Model<SpectrogramAttributes, SpectrogramCreationAttributes> implements SpectrogramAttributes {
     public id!: string;
@@ -23,6 +23,7 @@ class Spectrogram extends Model<SpectrogramAttributes, SpectrogramCreationAttrib
           id: {
             type: DataTypes.STRING,
             primaryKey: true,
+            unique: true,
           },
           data: {
             type: DataTypes.BLOB, // Utilizzo di BLOB per memorizzare i dati delle immagini

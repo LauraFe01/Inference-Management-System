@@ -1,8 +1,8 @@
 import express from 'express';
 import bodyParser from 'body-parser';
-import DatasetDAOApplication from './DAO/datasetDaoImpl'; // Assicurati di avere il percorso corretto
+import DatasetDAOApplication from './DAO/datasetDao'; // Assicurati di avere il percorso corretto
 import { DatasetCreationAttributes } from './Model/dataset';
-import { initModels, User, Dataset, Spectrogram } from './Model/init';
+import { initModels, User, Dataset, Spectrogram } from './Model/init_database';
 
 const app = express();
 const port = 3000;
