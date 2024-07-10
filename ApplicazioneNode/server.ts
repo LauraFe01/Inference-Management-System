@@ -77,7 +77,8 @@ app.post('/login', async(req, res)=>{
       if(password!= user[0].password){
         return res.status(401).send({error:'Wrong Password inserted'});
       }else{
-        const token = jwt.sign({payload: user[0].id}, config.jwtSecret, { expiresIn: config.jwtExpiration });
+        const token = jwt.sign({id: user[0].id}, config.jwtSecret, { expiresIn: config.jwtExpiration });
+        console.log(`${user[0].id}`)
         res.set('Authorization', `Bearer ${token}`);
         res.json({token});
         //res.status(200).send({ message: 'Login successful', user: user[0] });

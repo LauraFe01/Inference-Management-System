@@ -2,6 +2,7 @@ import DatasetDAOApplication from '../DAO/datasetDao';
 import jwt from 'jsonwebtoken';
 import express from 'express';
 import { Request, Response, NextFunction } from 'express';
+import { getDecodedToken } from './token';
 
 // const middlewareProva = require('./middlewareProva')
 // const auth = require('./auth')
@@ -30,8 +31,9 @@ function authMiddleware(req: Request, res: Response, next: NextFunction){
   const token = authHeader.split(' ')[1];
 
   try {
-    const decodedToken = jwt.verify(token, 'secret');
-    console.log(`${decodedToken}`)
+    const  decodedToken= jwt.verify(token, 'mysupersecretkey');
+    console.log('token', JSON.stringify(decodedToken, null, 2))
+  
     next();
   } catch (error) {
     console.error('Errore durante la verifica del token:', error);
@@ -41,22 +43,28 @@ function authMiddleware(req: Request, res: Response, next: NextFunction){
 
 
 async function checkDatasetOwnership (req: Request, res: Response, next: NextFunction){
-  const datasetId = req.params.id;
+  let datasetId = req.params.id;
   console.log(`${datasetId}`);
-  const userId = req.params.userId; 
-  console.log(`${userId}`);
+  const userData = getDecodedToken(req)
+
 
   try {
     const dataset = await datasetApp.getDataset(datasetId);
-    console.log(`[${dataset}`);
 
-    if (!dataset) {
+    if (!dataset || !userData) {
       return res.status(404).json({ error: 'Dataset non trovato' });
-    }
+    }else{
+      if (typeof userData !== 'string') {
+        const id = userData.id;  
+      
+      let userId = dataset.userId
+      console.log(`${userData.id}`)
+      console.log(`${dataset.userId}`);
 
-    // Verifica se l'utente è il proprietario del dataset
-    if (dataset.userId !== userId) {
-      return res.status(403).json({ error: 'Non sei autorizzato a cancellare questo dataset' });
+      if (userId !== id) {
+        return res.status(403).json({ error: 'Non sei autorizzato a cancellare questo dataset' });
+      }
+    }
     }
 
     // Se l'utente è il proprietario, passa al prossimo middleware o alla route
