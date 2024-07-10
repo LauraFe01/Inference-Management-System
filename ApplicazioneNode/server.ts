@@ -5,6 +5,8 @@ import { DatasetCreationAttributes } from './Model/dataset';
 import { UserCreationAttributes } from './Model/user';
 import { initModels, User, Dataset, Spectrogram } from './Model/init_database';
 import UserDAOApplication from './DAO/userDao';
+import config from './Token/configJWT';
+import jwt from 'jsonwebtoken';
 
 const app = express();
 const port = 3000;
@@ -54,6 +56,9 @@ app.post('/login', async(req, res)=>{
       return res.status(401).send({error:'Wrong Password inserted'});
     }
     res.status(200).send({ message: 'Login successful', user: user[0] });
+
+    const token = jwt.sign(user[0].id, config.jwtSecret, { expiresIn: config.jwtExpiration });
+    res.json({token});
 
   } catch(error){ 
       console.error('Error during login:', error);
