@@ -46,6 +46,10 @@ class UserDaoImpl implements Dao<User> {
       return user[attribute]; 
     }
     
+    async getUserByEmail(email: string): Promise<User[]>{
+      return await User.findAll({where: {email: email}});
+    }
+
   }
 
 
@@ -75,8 +79,13 @@ class UserDAOApplication {
   async deleteUser(user: User): Promise<void> {
     return await this.userDao.delete(user);
   }
+
   async getTokensNameById(id: string): Promise<string | null> {
     return await this.userDao.getAttributeById(id, 'numToken');
+  }
+
+  async getUserByEmailPass(email:string): Promise<User[]>{
+    return await this.userDao.getUserByEmail(email);
   }
 }
 
