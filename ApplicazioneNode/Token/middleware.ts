@@ -1,6 +1,8 @@
-var express = require('express');
-const jwt = require('jsonwebtoken');
-const { isNewExpression } = require('typescript');
+import DatasetDAOApplication from '../DAO/datasetDao';
+import jwt from 'jsonwebtoken';
+import express from 'express';
+import { Request, Response, NextFunction } from 'express';
+
 // const middlewareProva = require('./middlewareProva')
 // const auth = require('./auth')
 var app = express();
@@ -9,47 +11,60 @@ var app = express();
   console.log('LOGGED');
   next();
 }; */
+const datasetApp = new DatasetDAOApplication()
 
-var requestTime = function (req, res, next) {
+/* var requestTime = function (req, res, next) {
     req.requestTime = Date.now();
     next();
-  };
+  };*/
 
-var checkHeader = function(req, res, next){
-    const authHeader = req.headers.authorization;
-    if (authHeader) {
-        next();
-    }else{
-        let err = new Error("no auth header");
-        next(err);
+function authMiddleware(req: Request, res: Response, next: NextFunction){
+  
+  const authHeader = req.headers.authorization;
+  console.log(`${authHeader}`)
+  
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Token di autenticazione non fornito' });
+  }
+  
+  const token = authHeader.split(' ')[1];
+
+  try {
+    const decodedToken = jwt.verify(token, 'secret');
+    console.log(`${decodedToken}`)
+    next();
+  } catch (error) {
+    console.error('Errore durante la verifica del token:', error);
+    return res.status(403).json({ error: 'Token non valido' });
+  }
+}
+
+
+async function checkDatasetOwnership (req: Request, res: Response, next: NextFunction){
+  const datasetId = req.params.id;
+  console.log(`${datasetId}`);
+  const userId = req.params.userId; 
+  console.log(`${userId}`);
+
+  try {
+    const dataset = await datasetApp.getDataset(datasetId);
+    console.log(`[${dataset}`);
+
+    if (!dataset) {
+      return res.status(404).json({ error: 'Dataset non trovato' });
     }
+
+    // Verifica se l'utente è il proprietario del dataset
+    if (dataset.userId !== userId) {
+      return res.status(403).json({ error: 'Non sei autorizzato a cancellare questo dataset' });
+    }
+
+    // Se l'utente è il proprietario, passa al prossimo middleware o alla route
+    next();
+  } catch (error) {
+    console.error('Errore durante il controllo della proprietà del dataset:', error);
+    res.status(500).json({ error: 'Errore durante il controllo della proprietà del dataset' });
+  }
 };
 
-function checkToken(req,res,next){
-  const bearerHeader = req.headers.authorization;
-  if(typeof bearerHeader!=='undefined'){
-      const bearerToken = bearerHeader.split(' ')[1];
-      req.token=bearerToken;
-      next();
-  }else{
-      res.sendStatus(403);
-  }
-}
-
-function verifyAndAuthenticate(req,res,next){
-  let decoded = jwt.verify(req.token, 'mysupersecretkey');
-  if(decoded !== null)
-    req.user = decoded;
-    next();
-}
-
-function logErrors(err, req, res, next) {
-    console.error(err.stack);
-    next(err);
-  }
-
-function errorHandler(err, req, res, next) {   
-    res.status(500).send({"error": err.message});
-}
-  
-
+export { checkDatasetOwnership, authMiddleware};

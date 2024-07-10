@@ -7,6 +7,7 @@ import { initModels, User, Dataset, Spectrogram } from './Model/init_database';
 import UserDAOApplication from './DAO/userDao';
 import config from './Token/configJWT';
 import jwt from 'jsonwebtoken';
+import {checkDatasetOwnership, authMiddleware} from './Token/middleware';
 
 const app = express();
 const port = 3000;
@@ -43,7 +44,8 @@ app.post('/emptydataset', async (req, res) => {
   }
 });
 
-app.put('/dataset/:id/cancel', async (req, res) => {
+
+app.put('/dataset/:id/cancel', authMiddleware, checkDatasetOwnership, async (req, res) => {
   const datasetId = req.params.id;
 
   try {
@@ -98,3 +100,4 @@ app.post('/login', async(req, res)=>{
     console.error('Error starting server:', error);
   }
 })();
+
