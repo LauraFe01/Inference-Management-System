@@ -21,7 +21,7 @@ const datasetApp = new DatasetDAOApplication()
 function authMiddleware(req: Request, res: Response, next: NextFunction){
   
   const authHeader = req.headers.authorization;
-  console.log(`${authHeader}`)
+  console.log(JSON.stringify(req.headers, null, 2));
   
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'Token di autenticazione non fornito' });

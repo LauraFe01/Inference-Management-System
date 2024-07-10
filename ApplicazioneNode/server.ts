@@ -69,19 +69,20 @@ app.post('/login', async(req, res)=>{
   try{
     const{email, password}= req.body;
     // Controllare la presenza di campi
+    
     if(!email||!password){
       return res.status(400).send({error:'Missing required fields'});
+    } else{
+      const user= await userApp.getUserByEmailPass(email);
+      if(password!= user[0].password){
+        return res.status(401).send({error:'Wrong Password inserted'});
+      }else{
+        const token = jwt.sign({payload: user[0].id}, config.jwtSecret, { expiresIn: config.jwtExpiration });
+        res.set('Authorization', `Bearer ${token}`);
+        res.json({token});
+        //res.status(200).send({ message: 'Login successful', user: user[0] });
+      }
     }
-    const user= await userApp.getUserByEmailPass(email);
-
-    if(password!= user[0].password){
-      return res.status(401).send({error:'Wrong Password inserted'});
-    }
-    res.status(200).send({ message: 'Login successful', user: user[0] });
-
-    const token = jwt.sign(user[0].id, config.jwtSecret, { expiresIn: config.jwtExpiration });
-    res.json({token});
-
   } catch(error){ 
       console.error('Error during login:', error);
       res.status(500).send({ error: 'Internal Server Error' });
