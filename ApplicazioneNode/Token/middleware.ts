@@ -64,8 +64,7 @@ async function checkDatasetOwnership (req: Request, res: Response, next: NextFun
       }
     }
     }
-
-    // Se l'utente è il proprietario, passa al prossimo middleware o alla route
+    
     next();
   } catch (error) {
     console.error('Errore durante il controllo della proprietà del dataset:', error);
