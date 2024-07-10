@@ -1,8 +1,6 @@
 import os, sys
 import numpy as np
 import torch
-import matplotlib.pyplot as plt
-from sklearn.manifold import TSNE
 from networks import CRNN_2
 from tqdm import tqdm
 from sklearn.cluster import KMeans
