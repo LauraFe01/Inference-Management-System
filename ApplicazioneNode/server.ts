@@ -55,10 +55,9 @@ app.post('/login', async(req, res)=>{
     }
     res.status(200).send({ message: 'Login successful', user: user[0] });
 
-  } catch{(error: any) =>{
+  } catch(error){ 
       console.error('Error during login:', error);
       res.status(500).send({ error: 'Internal Server Error' });
-    }
   }
 });
 
