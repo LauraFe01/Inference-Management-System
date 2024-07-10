@@ -44,6 +44,21 @@ app.post('/emptydataset', async (req, res) => {
   }
 });
 
+// Rotta per recuperare tutti i dataset di un utente
+app.post('/user/:id/fetchdataset', authMiddleware, async(req, res)=>{
+  const authorId = req.params.id;
+  try{
+    const dataset = await datasetApp.getAllDatasetsByUser(authorId);
+    if (!dataset) {
+      return res.status(404).json({ error: 'User does not have any dataset' });
+    }else{
+      res.json(dataset);
+    }
+  } catch(error){
+    console.error('Errore durante il recupero dei dataset:', error);
+    res.status(500).json({ error: 'Errore durante il recupero dei dataset' });
+  }
+});
 
 app.put('/dataset/:id/cancel', authMiddleware, checkDatasetOwnership, async (req, res) => {
   const datasetId = req.params.id;

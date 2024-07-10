@@ -67,7 +67,7 @@ class DatasetDaoImpl implements Dao<Dataset> {
   }
 
   async getAllDatasetsByUser(userID: string):Promise<Dataset[]>{
-      return await Dataset.findAll({ where: { userId: userID } }); 
+      return await Dataset.findAll({ where: { userId: userID, isCancelled: false } }); 
   }
 }
 

@@ -46,8 +46,6 @@ async function checkDatasetOwnership (req: Request, res: Response, next: NextFun
   let datasetId = req.params.id;
   console.log(`${datasetId}`);
   const userData = getDecodedToken(req)
-
-
   try {
     const dataset = await datasetApp.getDataset(datasetId);
 
