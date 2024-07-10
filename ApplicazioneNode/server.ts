@@ -8,6 +8,7 @@ import UserDAOApplication from './DAO/userDao';
 import config from './Token/configJWT';
 import jwt from 'jsonwebtoken';
 import {checkDatasetOwnership, authMiddleware} from './Token/middleware';
+import { getDecodedToken } from './Token/token';
 
 const app = express();
 const port = 3000;
@@ -20,24 +21,33 @@ const datasetApp = new DatasetDAOApplication();
 const userApp = new UserDAOApplication();
 
 // Rotta per creare un dataset vuoto
-app.post('/emptydataset', async (req, res) => {
+app.post('/emptydataset', authMiddleware, async (req, res) => {
   try {
-    const { id, name, description, userId } = req.body;
+    const { id, name, description } = req.body;
 
     // Controlla che tutti i campi necessari siano presenti
-    if (!id || !name || !description || !userId) {
+    if (!id || !name || !description) {
       return res.status(400).send({ error: 'Missing required fields' });
     }
 
-    const newDataset: DatasetCreationAttributes = {
-      id,
-      name,
-      description,
-      userId,
-    };
+    const userData = getDecodedToken(req)
+    if (!userData) {
+      return res.status(404).json({ error: 'Utente non trovato' });
+    }else{
+      if (typeof userData !== 'string') {
+        const userId = userData.id;
 
-    await datasetApp.addDataset(newDataset);
-    res.status(201).send(newDataset);
+      const newDataset: DatasetCreationAttributes = {
+        id,
+        name,
+        description,
+        userId,
+      };
+
+      await datasetApp.addDataset(newDataset);
+      res.status(201).send(newDataset);
+    }
+    }
   } catch (error) {
     console.error('Error creating dataset:', error);
     res.status(500).send({ error: 'Internal Server Error' });
@@ -88,6 +98,34 @@ app.post('/login', async(req, res)=>{
       console.error('Error during login:', error);
       res.status(500).send({ error: 'Internal Server Error' });
   }
+});
+
+app.patch('/dataset/:id/update', authMiddleware, checkDatasetOwnership, async (req, res)=>{
+  const datasetId = req.params.id;
+  const updateFields = req.body; // I campi da aggiornare sono nel corpo della richiesta
+  const userData = getDecodedToken(req)
+  if (!userData) {
+    return res.status(404).json({ error: 'Utente non trovato' });
+  }else{
+    if (typeof userData !== 'string') {
+      const id = userData.id;
+  try {
+
+    const dataset = await datasetApp.getDataset(datasetId);
+    const datasetList = await datasetApp.getAllDatasetsByUser(id)
+    if (!dataset) {
+      return res.status(404).json({ error: 'Dataset non trovato' });
+    }
+
+    await datasetApp.updateDataset(dataset, updateFields)
+
+    res.json(dataset);
+  } catch (error) {
+    console.error('Errore durante l\'aggiornamento del dataset:', error);
+    res.status(500).json({ error: 'Errore durante l\'aggiornamento del dataset' });
+  }
+}
+}
 });
 
 

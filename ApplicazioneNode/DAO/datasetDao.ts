@@ -46,15 +46,23 @@ class DatasetDaoImpl implements Dao<Dataset> {
    * @returns Una Promise che si risolve quando il Dataset è stato aggiornato.
    */
   async update(dataset: Dataset, ...params: any[]): Promise<void> {
-    try {
-      const [updateValues] = params;
-      await dataset.update(updateValues);
-    } catch (error) {
-      if (error instanceof UniqueConstraintError) {
-        throw new Error('ID already exists');
+    const [updateValues] = params;
+
+    if (updateValues.name) {
+
+      const existingDataset = await Dataset.findOne({
+        where: {
+          name: updateValues.name,
+          userId: dataset.userId
+        }
+      });
+
+      if (existingDataset && existingDataset.name !== dataset.name) {
+        throw new Error(`Un dataset con il nome '${updateValues.name}' già esiste per questo utente.`);
       }
-      throw error;
     }
+      await dataset.update(updateValues);
+  
   }
 
   /**
