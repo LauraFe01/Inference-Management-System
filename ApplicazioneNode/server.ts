@@ -17,7 +17,7 @@ const datasetApp = new DatasetDAOApplication();
 const userApp = new UserDAOApplication();
 
 // Rotta per creare un dataset vuoto
-app.post('/datasets', async (req, res) => {
+app.post('/emptydataset', async (req, res) => {
   try {
     const { id, name, description, userId } = req.body;
 
@@ -41,6 +41,26 @@ app.post('/datasets', async (req, res) => {
   }
 });
 
+app.put('/dataset/:id/cancel', async (req, res) => {
+  const datasetId = req.params.id;
+
+  try {
+    const dataset = await datasetApp.getDataset(datasetId);
+
+    if (!dataset) {
+      return res.status(404).json({ error: 'Dataset non trovato' });
+    }
+
+    await datasetApp.updateDataset(dataset, {isCancelled:true} );
+
+    res.json({ message: 'Dataset cancellato logicamente' });
+  } catch (error) {
+    console.error('Errore durante la cancellazione del dataset:', error);
+    res.status(500).json({ error: 'Errore durante la cancellazione del dataset' });
+  }
+});
+
+
 app.post('/login', async(req, res)=>{
   try{
     const{email, password}= req.body;
@@ -61,6 +81,7 @@ app.post('/login', async(req, res)=>{
     }
   }
 });
+
 
 // Sincronizza il database e avvia il server
 (async () => {

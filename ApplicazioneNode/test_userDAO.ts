@@ -11,10 +11,10 @@ import { initModels, User, Dataset, Spectrogram } from './Model/init_database';
     const app = new UserDAOApplication();
 
     // Aggiungi un nuovo utente
-    const newUser: UserCreationAttributes = { id: '15', email: 'testprov222243a@mail.com', password: 'passswd', numToken: 5, isAdmin: false };
+    const newUser: UserCreationAttributes = { id: 'U0001', email: 'testprov222243a@mail.com', password: 'passswd', numToken: 5, isAdmin: false };
     await app.addUser(newUser);
 
-    // Ottieni un utente
+    /* // Ottieni un utente
     const user = await app.getUser('4');
     console.log(user);
 
@@ -42,7 +42,7 @@ import { initModels, User, Dataset, Spectrogram } from './Model/init_database';
      // Test di getUserByEmailPass
      console.log("Getting user by the email...");
      const emailUser= await app.getUserByEmailPass('testprov222243a@mail.com')
-     console.log('User fetched: ', emailUser);
+     console.log('User fetched: ', emailUser); */
 
   } catch (error) {
     console.error('Error:', error);

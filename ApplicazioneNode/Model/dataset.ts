@@ -7,16 +7,18 @@ interface DatasetAttributes {
   id: string;
   name: string;
   description: string;
+  isCancelled: boolean;
   userId: string;
 }
 
-interface DatasetCreationAttributes extends DatasetAttributes {}
+interface DatasetCreationAttributes extends Optional<DatasetAttributes, 'isCancelled'> {}
 
 class Dataset extends Model<DatasetAttributes, DatasetCreationAttributes> implements DatasetAttributes {
     public id!: string;
     public name!: string;
     public description!: string;
     public userId!: string;
+    public isCancelled!: boolean;
 
     public readonly createdAt!: Date;
     public readonly updatedAt!: Date;
@@ -40,6 +42,11 @@ class Dataset extends Model<DatasetAttributes, DatasetCreationAttributes> implem
           },
           userId: {
             type: DataTypes.STRING,
+            allowNull: false,
+          },
+          isCancelled: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false,
             allowNull: false,
           },
         },
