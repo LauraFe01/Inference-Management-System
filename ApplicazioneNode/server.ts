@@ -13,6 +13,8 @@ import { getDecodedToken } from './Token/token';
 import { SpectrogramCreationAttributes } from './Model/spectrogram';
 import SpectrogramDAOApplication from './DAO/spectrogramDao';
 import fs from 'fs/promises';
+import AdmZip from 'adm-zip';
+
 
 const app = express();
 const port = 3000;
@@ -242,6 +244,105 @@ app.post('/startInference/:datasetId', async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Errore durante la richiesta a Flask' });
   }
 });
+
+// Rotta per l'inserimento di uno spettrogramma
+app.post('/newspectrogram', authMiddleware, async (req, res) => {
+  try {
+    // Ci assicuriamo che i dati necessari siano presenti
+    const { data, datasetID } = req.body; 
+
+    console.log(JSON.stringify(req.body))
+    if (!data || !datasetID) {
+      return res.status(400).json({ error: 'Valori mancanti ' });
+    }
+
+    const userData = getDecodedToken(req);
+    if (!userData) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    if (typeof userData !== 'string') {
+      const userId = userData.id; 
+      const datasetData = await datasetApp.getDataset(datasetID);
+      if (!datasetData || datasetData.userId !== userId) {
+        return res.status(403).json({ error: 'User does not own the dataset' });
+      }
+
+      // dobbiamo gestire 'data'
+      try{
+        let bufferData = await fs.readFile(data);
+        const newSpectrogram: SpectrogramCreationAttributes = {
+          data: bufferData,
+          datasetId: datasetID,
+        };
+        await spectrogramDao.addSpectrogram(newSpectrogram);
+        return res.status(201).json(newSpectrogram); 
+
+        }catch(err){
+          console.error('Error reading file:', err);
+          return res.status(500).json({ error: 'Error reading file' });
+        }
+
+    }
+  } catch (error) {
+    console.error('Error adding spectrogram:', error);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Rotta per prendere i file da una cartella zippata
+app.post('/uploadfilesfromzip', authMiddleware, async(req,res)=>{
+  try {
+    const { data, datasetID } = req.body; 
+
+    console.log(JSON.stringify(req.body))
+    if (!data || !datasetID) {
+      return res.status(400).json({ error: 'Valori mancanti ' });
+    }
+
+    const userData = getDecodedToken(req);
+    if (!userData) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    if (typeof userData !== 'string') {
+      const userId = userData.id; 
+      const datasetData = await datasetApp.getDataset(datasetID);
+      if (!datasetData || datasetData.userId !== userId) {
+        return res.status(403).json({ error: 'User does not own the dataset' });
+      }
+      try {
+        console.log("ciao");
+        console.log(data, datasetID);
+        const zip = new AdmZip(data);
+        console.log("here");
+        const zipEntries = zip.getEntries();
+        for (const zipEntry of zipEntries){
+          console.log("here");
+          console.log(zipEntry.entryName);
+          //if(zipEntry.entryName.endsWith('.zip')){
+            const bufferData = zipEntry.getData();
+            console.log("ciao2");
+            const newSpectrogram: SpectrogramCreationAttributes = {
+              data: bufferData,
+              datasetId: datasetID,
+            };
+            await spectrogramDao.addSpectrogram(newSpectrogram);
+            console.log("hey")
+          
+        }
+        return res.status(201).json({ esito: 'Spettrogrammi caricati' }); 
+      } catch (error) {
+          console.error('Error reading file:', error);
+          return res.status(500).json({ error: 'Error reading file' });
+      }
+    }
+  } catch (error) {
+    console.error('Error adding spectrogram:', error);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 
 
 // Sincronizza il database e avvia il server
