@@ -80,7 +80,7 @@ class UserDAOApplication {
     return await this.userDao.delete(user);
   }
 
-  async getTokensNameById(id: string): Promise<string | null> {
+  async getTokensNumById(id: string): Promise<string | null> {
     return await this.userDao.getAttributeById(id, 'numToken');
   }
 

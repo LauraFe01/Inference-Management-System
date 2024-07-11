@@ -10,4 +10,4 @@ COPY . .
 
 RUN pip install -r requirements.txt
 
-CMD ["python", "basic_test.py"]
+CMD ["flask", "--app","app","run","--debug","--host=0.0.0.0"]

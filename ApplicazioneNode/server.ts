@@ -1,4 +1,5 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
+import axios from 'axios';
 import bodyParser from 'body-parser';
 import DatasetDAOApplication from './DAO/datasetDao'; // Assicurati di avere il percorso corretto
 import { DatasetCreationAttributes } from './Model/dataset';
@@ -93,6 +94,23 @@ app.put('/dataset/:id/cancel', authMiddleware, checkDatasetOwnership, async (req
   }
 });
 
+app.get('/remainingTokens', authMiddleware, async(req: Request, res: Response) => {
+    const userData = getDecodedToken(req)
+    if (!userData) {
+      return res.status(404).json({ error: 'Utente non trovato' });
+    }else{
+      if (typeof userData !== 'string') {
+        const id = userData.id;
+    try {
+        const numToken = await userApp.getTokensNumById(id)
+        res.json({numToken});
+      }catch(error){ 
+      console.error('Error during query:', error);
+      res.status(500).send({ error: 'Internal Server Error' });
+      }
+    }
+  }
+});
 
 app.post('/login', async(req, res)=>{
   try{
@@ -197,6 +215,31 @@ app.post('/newspectrogram', authMiddleware, async (req, res) => {
   } catch (error) {
     console.error('Error adding spectrogram:', error);
     return res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.post('/startInference/:datasetId', async (req: Request, res: Response) => {
+  const { modelId } = req.body;
+  const datasetId = req.params.datasetId;
+
+  const spectrograms = await spectrogramDao.getAllSpectrogramsByDataset(datasetId)
+
+  console.log(spectrograms)
+
+  const data = {
+    modelId: modelId,
+    spectrograms: spectrograms
+  };
+
+  try {
+    const response = await axios.post('http://127.0.0.1:8080/inference', data);
+
+    console.log('Risposta dal server Flask:', response.data);
+
+    res.json({ message: 'Inferenza avviata con successo' });
+  } catch (error) {
+    console.error('Errore durante la richiesta a Flask:', error);
+    res.status(500).json({ error: 'Errore durante la richiesta a Flask' });
   }
 });
 
