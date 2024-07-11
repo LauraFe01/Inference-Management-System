@@ -9,6 +9,9 @@ import config from './Token/configJWT';
 import jwt from 'jsonwebtoken';
 import {checkDatasetOwnership, authMiddleware} from './Token/middleware';
 import { getDecodedToken } from './Token/token';
+import { SpectrogramCreationAttributes } from './Model/spectrogram';
+import SpectrogramDAOApplication from './DAO/spectrogramDao';
+import fs from 'fs/promises';
 
 const app = express();
 const port = 3000;
@@ -19,6 +22,7 @@ app.use(bodyParser.json());
 // Instanzia il DAO Application
 const datasetApp = new DatasetDAOApplication();
 const userApp = new UserDAOApplication();
+const spectrogramDao= new SpectrogramDAOApplication();
 
 // Rotta per creare un dataset vuoto
 app.post('/emptydataset', authMiddleware, async (req, res) => {
@@ -141,6 +145,59 @@ app.patch('/dataset/:id/update', authMiddleware, checkDatasetOwnership, async (r
   }
 }
 }
+});
+
+// Rotta per l'inserimento di uno spettrogramma
+app.post('/newspectrogram', authMiddleware, async (req, res) => {
+  try {
+    console.log('here')
+    // Ci assicuriamo che i dati necessari siano presenti
+    const { id, data, datasetID } = req.body; 
+
+    console.log(JSON.stringify(req.body))
+    if (!data || !datasetID) {
+      console.log('1');
+      return res.status(400).json({ error: 'Valori mancanti ' });
+    }
+
+    const userData = getDecodedToken(req);
+    if (!userData) {
+      console.log('2');
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    if (typeof userData !== 'string') {
+      const userId = userData.id; 
+      const datasetData = await datasetApp.getDataset(datasetID);
+      if (!datasetData || datasetData.userId !== userId) {
+        console.log('3');
+        return res.status(403).json({ error: 'User does not own the dataset' });
+      }
+
+      // dobbiamo gestire 'data'
+      //let bufferData;
+      try{
+        let bufferData = await fs.readFile(data);
+        const newSpectrogram: SpectrogramCreationAttributes = {
+          id: id,
+          data: bufferData,
+          datasetId: datasetID,
+        };
+        console.log('4');
+        await spectrogramDao.addSpectrogram(newSpectrogram);
+        console.log('5');
+        return res.status(201).json(newSpectrogram); // Send JSON response
+
+        }catch(err){
+          console.error('Error reading file:', err);
+          return res.status(500).json({ error: 'Error reading file' });
+        }
+
+    }
+  } catch (error) {
+    console.error('Error adding spectrogram:', error);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
 });
 
 
