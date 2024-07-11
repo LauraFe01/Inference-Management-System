@@ -5,7 +5,7 @@ export interface Dao<T> {
    * @param id - L'ID dell'oggetto da recuperare.
    * @returns Una Promise che risolve a un oggetto di tipo T o null se non trovato.
    */
-  get(id: string): Promise<T | null>;
+  //get(id: string): Promise<T | null>;
 
   /**
    * Recupera tutti gli oggetti di tipo T dal database.

@@ -10,7 +10,7 @@ class SpectrogramDaoImpl implements Dao<Spectrogram> {
    * @param id - L'ID del spectrogram da recuperare.
    * @returns Una Promise che risolve con il Spectrogram trovato o null se non trovato.
    */
-  async get(id: string): Promise<Spectrogram | null> {
+  async get(id: number): Promise<Spectrogram | null> {
     return await Spectrogram.findByPk(id);
   }
 
@@ -85,7 +85,7 @@ class SpectrogramDAOApplication {
    * @param id - L'ID del Spectrogram da recuperare.
    * @returns Una Promise che risolve con il Spectrogram trovato o null se non trovato.
    */
-  async getSpectrogram(id: string): Promise<Spectrogram | null> {
+  async getSpectrogram(id: number): Promise<Spectrogram | null> {
     return await this.spectrogramDao.get(id);
   }
 
