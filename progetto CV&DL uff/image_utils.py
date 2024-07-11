@@ -1,3 +1,4 @@
+import wave
 from PIL import Image
 import io
 import numpy as np
@@ -15,7 +16,13 @@ def decode_image_from_buffer(buffer):
     # Converte l'immagine in un array numpy
     image_array = np.array(image)
 
-    # Converte l'array numpy in un tensore PyTorch
-    image_tensor = torch.tensor(image_array)
+    # Verifica le dimensioni dell'immagine
+    if image_array.shape == (64, 519, 4):
+        # Rimuove la terza dimensione (ad esempio, se è un'immagine RGBA con 4 canali)
+        image_array = image_array[:, :, 0]  # Prendi solo il primo canale
 
-    return image_tensor
+    # Converte l'array numpy in un tensore PyTorch
+    image_tensor = torch.tensor(image_array, dtype=torch.float32)
+    tensor_image = image_tensor.unsqueeze(0).unsqueeze(0)
+
+    return tensor_image
