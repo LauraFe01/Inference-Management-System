@@ -43,7 +43,7 @@ function authMiddleware(req: Request, res: Response, next: NextFunction){
 
 
 async function checkDatasetOwnership (req: Request, res: Response, next: NextFunction){
-  let datasetId = req.params.id;
+  let datasetId = parseInt(req.params.id);
   console.log(`${datasetId}`);
   const userData = getDecodedToken(req)
   try {

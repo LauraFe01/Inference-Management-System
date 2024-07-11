@@ -4,20 +4,20 @@ import Spectrogram from './spectrogram';
 
 
 interface DatasetAttributes {
-  id: string;
+  id: number;
   name: string;
   description: string;
   isCancelled: boolean;
-  userId: string;
+  userId: number;
 }
 
-interface DatasetCreationAttributes extends Optional<DatasetAttributes, 'isCancelled'> {}
+interface DatasetCreationAttributes extends Optional<DatasetAttributes, 'id'|'isCancelled'> {}
 
 class Dataset extends Model<DatasetAttributes, DatasetCreationAttributes> implements DatasetAttributes {
-    public id!: string;
+    public id!: number;
     public name!: string;
     public description!: string;
-    public userId!: string;
+    public userId!: number;
     public isCancelled!: boolean;
 
     public readonly createdAt!: Date;
@@ -27,9 +27,11 @@ class Dataset extends Model<DatasetAttributes, DatasetCreationAttributes> implem
     Dataset.init(
         {
           id: {
-            type: DataTypes.STRING,
+            type: DataTypes.INTEGER,
             primaryKey: true,
-            unique: true
+            unique: true,
+            autoIncrement:true,
+            allowNull: false
           },
           name: {
             type: DataTypes.STRING,
@@ -40,7 +42,7 @@ class Dataset extends Model<DatasetAttributes, DatasetCreationAttributes> implem
             allowNull: false,
           },
           userId: {
-            type: DataTypes.STRING,
+            type: DataTypes.INTEGER,
             allowNull: false,
           },
           isCancelled: {

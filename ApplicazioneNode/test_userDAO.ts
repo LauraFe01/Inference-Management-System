@@ -11,8 +11,15 @@ import { initModels, User, Dataset, Spectrogram } from './Model/init_database';
     const app = new UserDAOApplication();
 
     // Aggiungi un nuovo utente
-    const newUser: UserCreationAttributes = { id: 'U0001', email: 'testprov222243a@mail.com', password: 'passswd', numToken: 5, isAdmin: false };
+    const newUser: UserCreationAttributes = { email: 'testprov223a@mail.com', password: 'password2', numToken: 5, isAdmin: false };
     await app.addUser(newUser);
+
+    console.log('nuovo User', newUser);
+    if (newUser.id !== undefined) {
+      console.log('New User ID:', newUser.id);
+    } else {
+      console.log('Failed to retrieve new user ID.');
+    }
 
     /* // Ottieni un utente
     const user = await app.getUser('4');

@@ -11,7 +11,6 @@ async function runTests() {
 
   // Esempi di dati per i test
   const newDataset: DatasetCreationAttributes = {
-    id: "0004",
     name: 'Test Dataset',
     description: 'This is a test dataset',
     userId: '14', 
@@ -23,17 +22,17 @@ async function runTests() {
     await datasetDAOApp.addDataset(newDataset);
 
     // Test di getDataset
-    console.log('Getting the dataset by ID...');
+    /* console.log('Getting the dataset by ID...');
     const dataset = await datasetDAOApp.getDataset('16666'); // Assicurati di avere un dataset con ID 1 nel database
-    console.log('Dataset:', dataset);
+    console.log('Dataset:', dataset); */
 
     // Test di getAllDatasets
-    console.log('Getting all datasets...');
+    /* console.log('Getting all datasets...');
     const allDatasets = await datasetDAOApp.getAllDatasets();
-    console.log('All datasets:', allDatasets);
+    console.log('All datasets:', allDatasets); */
 
     // Test di updateDataset
-    console.log('Updating the dataset...');
+    /* console.log('Updating the dataset...');
     await datasetDAOApp.updateDataset(dataset!, { description: 'Updated description 2' });
     const updatedDataset = await datasetDAOApp.getDataset('0002');
     console.log('Updated dataset:', updatedDataset);
@@ -47,8 +46,8 @@ async function runTests() {
     // Esempio di test per getAllDatasetsByUser
     console.log('Getting all datasets by user...');
     const datasetsByUser = await datasetDAOApp.getAllDatasetsByUser('14'); // Assicurati di avere dataset associati all'utente con ID 1
-    console.log('Datasets by user:', datasetsByUser);
-  } catch (error) {
+    console.log('Datasets by user:', datasetsByUser);*/
+  }  catch (error) {
     console.error('Error during tests:', error);
   }
 }

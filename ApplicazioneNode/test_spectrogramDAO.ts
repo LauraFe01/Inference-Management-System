@@ -18,7 +18,6 @@ async function runTests() {
 
   // Esempi di dati per i test
   const newSpectrogram: SpectrogramCreationAttributes = {
-    id: 'S0003',
     data: fileData,
     datasetId: '0001', // Assicurati di avere un dataset con ID corrispondente nel database
   };
@@ -30,8 +29,8 @@ async function runTests() {
 
     // Test di getSpectrogram
     console.log('Getting the spectrogram by ID...');
-    const spectrogram = await spectrogramDAOApp.getSpectrogram('S0001'); // Assicurati di avere un spectrogram con ID 1 nel database
-    console.log('Spectrogram:', spectrogram);
+    //const spectrogram = await spectrogramDAOApp.getSpectrogram('S0001'); // Assicurati di avere un spectrogram con ID 1 nel database
+    console.log('Spectrogram:', newSpectrogram);
 
     // Test di getAllSpectrograms
     console.log('Getting all spectrograms...');

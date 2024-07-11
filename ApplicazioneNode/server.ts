@@ -30,10 +30,10 @@ const spectrogramDao= new SpectrogramDAOApplication();
 // Rotta per creare un dataset vuoto
 app.post('/emptydataset', authMiddleware, async (req, res) => {
   try {
-    const { id, name, description } = req.body;
+    const { name, description } = req.body;
 
     // Controlla che tutti i campi necessari siano presenti
-    if (!id || !name || !description) {
+    if (!name || !description) {
       return res.status(400).send({ error: 'Missing required fields' });
     }
 
@@ -45,7 +45,6 @@ app.post('/emptydataset', authMiddleware, async (req, res) => {
         const userId = userData.id;
 
       const newDataset: DatasetCreationAttributes = {
-        id,
         name,
         description,
         userId,
@@ -78,7 +77,7 @@ app.post('/user/:id/fetchdataset', authMiddleware, async(req, res)=>{
 });
 
 app.put('/dataset/:id/cancel', authMiddleware, checkDatasetOwnership, async (req, res) => {
-  const datasetId = req.params.id;
+  const datasetId = parseInt(req.params.id);
 
   try {
     const dataset = await datasetApp.getDataset(datasetId);
@@ -140,7 +139,7 @@ app.post('/login', async(req, res)=>{
 });
 
 app.patch('/dataset/:id/update', authMiddleware, checkDatasetOwnership, async (req, res)=>{
-  const datasetId = req.params.id;
+  const datasetId = parseInt(req.params.id);
   const updateFields = req.body; // I campi da aggiornare sono nel corpo della richiesta
   const userData = getDecodedToken(req)
   if (!userData) {
@@ -165,59 +164,6 @@ app.patch('/dataset/:id/update', authMiddleware, checkDatasetOwnership, async (r
   }
 }
 }
-});
-
-// Rotta per l'inserimento di uno spettrogramma
-app.post('/newspectrogram', authMiddleware, async (req, res) => {
-  try {
-    console.log('here')
-    // Ci assicuriamo che i dati necessari siano presenti
-    const { id, data, datasetID } = req.body; 
-
-    console.log(JSON.stringify(req.body))
-    if (!data || !datasetID) {
-      console.log('1');
-      return res.status(400).json({ error: 'Valori mancanti ' });
-    }
-
-    const userData = getDecodedToken(req);
-    if (!userData) {
-      console.log('2');
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    if (typeof userData !== 'string') {
-      const userId = userData.id; 
-      const datasetData = await datasetApp.getDataset(datasetID);
-      if (!datasetData || datasetData.userId !== userId) {
-        console.log('3');
-        return res.status(403).json({ error: 'User does not own the dataset' });
-      }
-
-      // dobbiamo gestire 'data'
-      //let bufferData;
-      try{
-        let bufferData = await fs.readFile(data);
-        const newSpectrogram: SpectrogramCreationAttributes = {
-          id: id,
-          data: bufferData,
-          datasetId: datasetID,
-        };
-        console.log('4');
-        await spectrogramDao.addSpectrogram(newSpectrogram);
-        console.log('5');
-        return res.status(201).json(newSpectrogram); // Send JSON response
-
-        }catch(err){
-          console.error('Error reading file:', err);
-          return res.status(500).json({ error: 'Error reading file' });
-        }
-
-    }
-  } catch (error) {
-    console.error('Error adding spectrogram:', error);
-    return res.status(500).json({ error: 'Internal Server Error' });
-  }
 });
 
 app.post('/startInference/:datasetId', async (req: Request, res: Response) => {
@@ -312,15 +258,16 @@ app.post('/uploadfilesfromzip', authMiddleware, async(req,res)=>{
         return res.status(403).json({ error: 'User does not own the dataset' });
       }
       try {
-        console.log("ciao");
         console.log(data, datasetID);
         const zip = new AdmZip(data);
-        console.log("here");
         const zipEntries = zip.getEntries();
+        console.log("Zip Entries:");
+        zipEntries.forEach(entry => console.log(entry.entryName));
+
         for (const zipEntry of zipEntries){
           console.log("here");
           console.log(zipEntry.entryName);
-          //if(zipEntry.entryName.endsWith('.zip')){
+          if(zipEntry.entryName.endsWith('.png')&& !zipEntry.entryName.startsWith('__MACOSX/')){
             const bufferData = zipEntry.getData();
             console.log("ciao2");
             const newSpectrogram: SpectrogramCreationAttributes = {
@@ -329,7 +276,7 @@ app.post('/uploadfilesfromzip', authMiddleware, async(req,res)=>{
             };
             await spectrogramDao.addSpectrogram(newSpectrogram);
             console.log("hey")
-          
+         }
         }
         return res.status(201).json({ esito: 'Spettrogrammi caricati' }); 
       } catch (error) {
@@ -342,8 +289,6 @@ app.post('/uploadfilesfromzip', authMiddleware, async(req,res)=>{
     return res.status(500).json({ error: 'Internal Server Error' });
   }
 });
-
-
 
 // Sincronizza il database e avvia il server
 (async () => {

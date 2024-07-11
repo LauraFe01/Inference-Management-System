@@ -10,7 +10,7 @@ class DatasetDaoImpl implements Dao<Dataset> {
    * @param id - L'ID del dataset da recuperare.
    * @returns Una Promise che risolve con il Dataset trovato o null se non trovato.
    */
-  async get(id: string): Promise<Dataset | null> {
+  async get(id: number): Promise<Dataset | null> {
     return await Dataset.findByPk(id);
   }
 
@@ -93,7 +93,7 @@ class DatasetDAOApplication {
    * @param id - L'ID del Dataset da recuperare.
    * @returns Una Promise che risolve con il Dataset trovato o null se non trovato.
    */
-  async getDataset(id: string): Promise<Dataset | null> {
+  async getDataset(id: number): Promise<Dataset | null> {
     return await this.datasetDao.get(id);
   }
 

@@ -3,7 +3,7 @@ import { User, UserCreationAttributes } from '../Model/user';
 import { UniqueConstraintError } from 'sequelize';
 
 class UserDaoImpl implements Dao<User> {
-    async get(id: string): Promise<User | null> {
+    async get(id: number): Promise<User | null> {
       return await User.findByPk(id);
     }
   
@@ -13,7 +13,7 @@ class UserDaoImpl implements Dao<User> {
   
     async save(userAttributes: UserCreationAttributes): Promise<void> {
       try {
-        await User.create(userAttributes);
+        const user = await User.create(userAttributes);
       } catch (error) {
         if (error instanceof UniqueConstraintError) {
           throw new Error('ID or email already exists');
@@ -60,7 +60,7 @@ class UserDAOApplication {
     this.userDao = new UserDaoImpl();
   }
 
-  async getUser(id: string): Promise<User | null> {
+  async getUser(id: number): Promise<User | null> {
     return await this.userDao.get(id);
   }
 
