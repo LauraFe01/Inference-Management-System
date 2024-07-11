@@ -14,6 +14,7 @@ import { SpectrogramCreationAttributes } from './Model/spectrogram';
 import SpectrogramDAOApplication from './DAO/spectrogramDao';
 import fs from 'fs/promises';
 import AdmZip from 'adm-zip';
+import path from 'path';
 
 
 const app = express();
@@ -184,7 +185,9 @@ app.post('/startInference/:datasetId', async (req: Request, res: Response) => {
 
     console.log('Risposta dal server Flask:', response.data);
 
-    res.json({ message: 'Inferenza avviata con successo' });
+    const dataresponse = response.data
+
+    res.json({ dataresponse });
   } catch (error) {
     console.error('Errore durante la richiesta a Flask:', error);
     res.status(500).json({ error: 'Errore durante la richiesta a Flask' });
@@ -195,10 +198,11 @@ app.post('/startInference/:datasetId', async (req: Request, res: Response) => {
 app.post('/newspectrogram', authMiddleware, async (req, res) => {
   try {
     // Ci assicuriamo che i dati necessari siano presenti
-    const { data, datasetID } = req.body; 
+    const { filepath, datasetID } = req.body; 
+    const fileName = path.basename(filepath);
 
     console.log(JSON.stringify(req.body))
-    if (!data || !datasetID) {
+    if (!filepath || !datasetID) {
       return res.status(400).json({ error: 'Valori mancanti ' });
     }
 
@@ -216,8 +220,9 @@ app.post('/newspectrogram', authMiddleware, async (req, res) => {
 
       // dobbiamo gestire 'data'
       try{
-        let bufferData = await fs.readFile(data);
+        let bufferData = await fs.readFile(filepath);
         const newSpectrogram: SpectrogramCreationAttributes = {
+          name: fileName,
           data: bufferData,
           datasetId: datasetID,
         };
@@ -239,10 +244,10 @@ app.post('/newspectrogram', authMiddleware, async (req, res) => {
 // Rotta per prendere i file da una cartella zippata
 app.post('/uploadfilesfromzip', authMiddleware, async(req,res)=>{
   try {
-    const { data, datasetID } = req.body; 
+    const { folderpath, datasetID } = req.body; 
 
     console.log(JSON.stringify(req.body))
-    if (!data || !datasetID) {
+    if (!folderpath || !datasetID) {
       return res.status(400).json({ error: 'Valori mancanti ' });
     }
 
@@ -258,19 +263,19 @@ app.post('/uploadfilesfromzip', authMiddleware, async(req,res)=>{
         return res.status(403).json({ error: 'User does not own the dataset' });
       }
       try {
-        console.log(data, datasetID);
-        const zip = new AdmZip(data);
+        console.log(folderpath, datasetID);
+        const zip = new AdmZip(folderpath);
         const zipEntries = zip.getEntries();
-        console.log("Zip Entries:");
-        zipEntries.forEach(entry => console.log(entry.entryName));
 
         for (const zipEntry of zipEntries){
           console.log("here");
-          console.log(zipEntry.entryName);
+          let filename = zipEntry.entryName;
+          const basename = path.basename(filename);
           if(zipEntry.entryName.endsWith('.png')&& !zipEntry.entryName.startsWith('__MACOSX/')){
             const bufferData = zipEntry.getData();
             console.log("ciao2");
             const newSpectrogram: SpectrogramCreationAttributes = {
+              name: basename,
               data: bufferData,
               datasetId: datasetID,
             };

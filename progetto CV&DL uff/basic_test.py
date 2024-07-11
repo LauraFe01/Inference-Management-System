@@ -20,8 +20,6 @@ class Inference:
         pred_labels = []
         data = data.to(self.device)
         with torch.no_grad():
-            prediction1 = self.net(data)
+            prediction = self.net(data)
 
-        pred_labels.append(prediction1)
-
-        return pred_labels
+        return prediction

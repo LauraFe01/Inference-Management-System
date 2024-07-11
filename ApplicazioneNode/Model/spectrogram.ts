@@ -4,14 +4,16 @@ import { Optional } from 'sequelize';
 
 interface SpectrogramAttributes {
   id?: number;
+  name?: string;
   data: Buffer;
   datasetId: string;
 }
 
-interface SpectrogramCreationAttributes extends  Optional<SpectrogramAttributes, 'id'> {}
+interface SpectrogramCreationAttributes extends  Optional<SpectrogramAttributes, 'id' | 'name'> {}
 
 class Spectrogram extends Model<SpectrogramAttributes, SpectrogramCreationAttributes> implements SpectrogramAttributes {
     public id!: number;
+    public name!: string;
     public data!: Buffer;
     public datasetId!: string;
 
@@ -28,12 +30,16 @@ class Spectrogram extends Model<SpectrogramAttributes, SpectrogramCreationAttrib
             autoIncrement:true,
             allowNull: false
           },
+          name: {
+            type: DataTypes.STRING,
+            allowNull: false,
+          },
           data: {
             type: DataTypes.BLOB, // Utilizzo di BLOB per memorizzare i dati delle immagini
             allowNull: false,
           },
           datasetId: {
-            type: DataTypes.STRING,
+            type: DataTypes.INTEGER,
             allowNull: false,
           },
         },
