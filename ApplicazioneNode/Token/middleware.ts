@@ -33,6 +33,7 @@ function authMiddleware(req: Request, res: Response, next: NextFunction){
   try {
     const  decodedToken= jwt.verify(token, 'mysupersecretkey');
     console.log('token', JSON.stringify(decodedToken, null, 2))
+    res.locals.decodedToken = decodedToken;
   
     next();
   } catch (error) {
@@ -73,14 +74,15 @@ async function checkDatasetOwnership (req: Request, res: Response, next: NextFun
 };
 
 function isAdminMiddleware(req: Request, res: Response, next: NextFunction) {
+  console.log("res", res.locals.decodedToken);
 
   const { decodedToken } = res.locals;
 
-  if (!decodedToken.isAdmin) {
+  if (decodedToken.isAdmin==false) {
     return res.status(403).json({ error: 'Accesso negato. Non sei un amministratore.' });
   }
 
   next();
 }
 
-export { checkDatasetOwnership, authMiddleware};
+export { checkDatasetOwnership, authMiddleware, isAdminMiddleware};

@@ -65,7 +65,7 @@ class SpectrogramDaoImpl implements Dao<Spectrogram> {
     await spectrogram.destroy();
   }
 
-  async getAllSpectrogramsByDataset(datasetId: string): Promise<Spectrogram[]>{
+  async getAllSpectrogramsByDataset(datasetId: number): Promise<Spectrogram[]>{
     return await Spectrogram.findAll({ where: { datasetId: datasetId } }); 
   }
 }
@@ -125,7 +125,7 @@ class SpectrogramDAOApplication {
     return await this.spectrogramDao.delete(spectrogram);
   }
 
-  async getAllSpectrogramsByDataset(datasetId: string): Promise<Spectrogram[]> {
+  async getAllSpectrogramsByDataset(datasetId: number): Promise<Spectrogram[]> {
     return await this.spectrogramDao.getAllSpectrogramsByDataset(datasetId);
   }
 
