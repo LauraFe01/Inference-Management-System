@@ -7,10 +7,14 @@ import SpectrogramDAOApplication from '../DAO/spectrogramDao';
 import axios from 'axios';
 import {updateToken} from '../utils';
 import { User} from '../Model/init_database';
+import { inferenceQueue } from '../Queue/inferenceQueue';
+import inferenceWorker from "../Worker/inferenceWorker";
+import { QueueEvents } from 'bullmq';
 
 const datasetApp = new DatasetDAOApplication();
 const userApp = new UserDAOApplication();
 const spectrogramDao= new SpectrogramDAOApplication();
+const queueEvents = new QueueEvents('Inference');
 
 export const datasetController = {
   createEmptyDataset: async (req: Request, res: Response) => {
@@ -143,13 +147,22 @@ export const datasetController = {
         };
 
         try {
-        const response = await axios.post('http://127.0.0.1:8080/inference', data);
-
-        console.log('Risposta dal server Flask:', response.data);
-
-        const dataresponse = response.data
-
-        res.json({ dataresponse });
+          queueEvents.on('completed', ({ jobId }) => {
+            if (jobId === job.id) {
+              res.json({ message: 'Inferenza completata' });
+            }
+          });
+          
+          queueEvents.on('failed', ({ jobId, failedReason }) => {
+            if (jobId === job.id) {
+              res.status(500).json({ error: 'Inferenza fallita' });
+            }
+          });
+      
+          const job = await inferenceQueue.add('performInference', {modelId,spectrograms});
+          const jobId= job.id;
+      
+          res.json({message: 'Inferenza aggiunta in coda con id: ', jobId});
         } catch (error) {
         console.error('Errore durante la richiesta a Flask:', error);
         res.status(500).json({ error: 'Internal server error' });
@@ -159,6 +172,29 @@ export const datasetController = {
         return res.status(401).send('Not authorized')
         }
     }
+  },
+
+
+  getInferenceStatus: async (req: Request, res: Response)=>{
+    const jobId = req.params.jobId;
+
+    try {
+      const job = await inferenceQueue.getJob(jobId);
+      if(!job){
+        return res.status(404).json({ error: 'Job non trovato' });
+      }
+      if (await job.isCompleted()) {
+        res.json({ status: 'Completed', result: job.returnvalue });
+      } else if (await job.isFailed()) {
+        res.status(500).json({ status: 'Failed', failedReason: job.failedReason });
+      } else {
+        res.json({ status: 'Pending' });
+      }
+    } catch (error) {
+      console.error('Error getting job status:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+
   },
 
 
