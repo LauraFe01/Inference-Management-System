@@ -72,4 +72,15 @@ async function checkDatasetOwnership (req: Request, res: Response, next: NextFun
   }
 };
 
+function isAdminMiddleware(req: Request, res: Response, next: NextFunction) {
+
+  const { decodedToken } = res.locals;
+
+  if (!decodedToken.isAdmin) {
+    return res.status(403).json({ error: 'Accesso negato. Non sei un amministratore.' });
+  }
+
+  next();
+}
+
 export { checkDatasetOwnership, authMiddleware};

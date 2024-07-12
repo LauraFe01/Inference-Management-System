@@ -13,7 +13,7 @@ def inference():
     model_id = data['modelId']
     spectrograms = data['spectrograms']
     print(spectrograms)
-    inferenceObj = Inference()
+    inferenceObj = Inference(model_id)
 
     for spectrogram in spectrograms:
         buffer = spectrogram["data"]

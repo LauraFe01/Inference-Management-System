@@ -6,7 +6,7 @@ interface SpectrogramAttributes {
   id?: number;
   name?: string;
   data: Buffer;
-  datasetId: string;
+  datasetId: number;
 }
 
 interface SpectrogramCreationAttributes extends  Optional<SpectrogramAttributes, 'id' | 'name'> {}
@@ -15,7 +15,7 @@ class Spectrogram extends Model<SpectrogramAttributes, SpectrogramCreationAttrib
     public id!: number;
     public name!: string;
     public data!: Buffer;
-    public datasetId!: string;
+    public datasetId!: number;
 
     public readonly createdAt!: Date;
     public readonly updatedAt!: Date;

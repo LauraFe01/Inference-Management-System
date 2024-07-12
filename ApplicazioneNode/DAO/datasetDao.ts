@@ -29,10 +29,27 @@ class DatasetDaoImpl implements Dao<Dataset> {
    */
   async save(datasetAttributes: DatasetCreationAttributes): Promise<void> {
     try {
+      console.log(datasetAttributes.name)
+
+      if (datasetAttributes.name) {
+      
+
+        const existingDataset = await Dataset.findOne({
+          where: {
+            name: datasetAttributes.name,
+            userId: datasetAttributes.userId
+          }
+        });
+  
+        if (existingDataset && existingDataset.name == datasetAttributes.name) {
+          throw new Error(`Un dataset con il nome '${datasetAttributes.name}' già esiste per questo utente.`);
+        }
+      }
+
       await Dataset.create(datasetAttributes);
     } catch (error) {
       if (error instanceof UniqueConstraintError) {
-        throw new Error('ID or name already exists');
+        throw new Error('ID already exists');
       }
       throw error;
     }
@@ -76,6 +93,16 @@ class DatasetDaoImpl implements Dao<Dataset> {
 
   async getAllDatasetsByUser(userID: string):Promise<Dataset[]>{
       return await Dataset.findAll({ where: { userId: userID, isCancelled: false } }); 
+  }
+
+  async getByName(dbName: string, userId: number): Promise<Dataset | null> {
+
+    const existingDataset = await Dataset.findOne({
+      where: {
+        name: dbName,
+        userId: userId
+      }});
+    return existingDataset
   }
 }
 
@@ -135,6 +162,10 @@ class DatasetDAOApplication {
 
   async getAllDatasetsByUser(userID: string): Promise<Dataset[]> {
     return await this.datasetDao.getAllDatasetsByUser(userID);
+  }
+
+  async getByName(name: string, userId: number): Promise<Dataset | null> {
+    return await this.datasetDao.getByName(name, userId);
   }
 }
 

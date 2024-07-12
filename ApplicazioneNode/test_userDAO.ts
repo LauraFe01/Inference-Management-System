@@ -11,7 +11,7 @@ import { initModels, User, Dataset, Spectrogram } from './Model/init_database';
     const app = new UserDAOApplication();
 
     // Aggiungi un nuovo utente
-    const newUser: UserCreationAttributes = { email: 'testprova2@mail.com', password: 'password2', numToken: 5, isAdmin: false };
+    const newUser: UserCreationAttributes = { email: 'testprova2@mail.com', password: 'password2', numToken: 10000, isAdmin: false };
     await app.addUser(newUser);
 
     console.log('nuovo User', newUser);
