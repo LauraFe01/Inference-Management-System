@@ -5,6 +5,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - 3000:3000
+    volumes:
+      - ./ApplicazioneNode:/usr/app
     depends_on:
       - flask_app
       - redis

@@ -7,7 +7,7 @@ const inferenceWorker = new Worker('inferenceQueue', async job=>{
     const { modelId, spectrograms, userId, updateValues } = job.data;
 
     console.log('Performing inference for model:', modelId, 'on spectrograms:', spectrograms);
-    const response = await axios.post('http://127.0.0.1:8080/inference', { modelId, spectrograms });
+    const response = await axios.post('http://flask_app:5000/inference', { modelId, spectrograms });
 
     console.log('Response from Flask server:', response.data);
     const dataresponse = response.data
