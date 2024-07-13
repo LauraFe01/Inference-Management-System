@@ -4,7 +4,6 @@ import { DatasetCreationAttributes } from '../Model/dataset';
 import DatasetDAOApplication from '../DAO/datasetDao';
 import UserDAOApplication from '../DAO/userDao';
 import SpectrogramDAOApplication from '../DAO/spectrogramDao';
-import axios from 'axios';
 import {updateToken} from '../utils';
 import { User} from '../Model/init_database';
 import { inferenceQueue } from '../Queue/inferenceQueue';
