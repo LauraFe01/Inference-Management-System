@@ -10,5 +10,6 @@ router.patch('/dataset/:name/update', authMiddleware, datasetController.updateDa
 router.post('/startInference/:datasetName', authMiddleware, datasetController.startInference);
 router.get('/allDatasets', authMiddleware, datasetController.getAllDatasets);
 router.get('/inferenceStatus/:jobId', authMiddleware, datasetController.getInferenceStatus);
+router.post('/abortInference/:jobId', authMiddleware, datasetController.abortInference);
 
 export default router;

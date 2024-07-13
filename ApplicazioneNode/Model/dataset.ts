@@ -1,8 +1,8 @@
 import { Model, DataTypes, Optional } from 'sequelize';
-import db from '../Config/db_config';
-import Spectrogram from './spectrogram';
+import db from '../Config/db_config'; // Assuming this is your Sequelize instance
+import Spectrogram from './spectrogram'; // Importing Spectrogram model
 
-
+// Define the attributes for Dataset
 interface DatasetAttributes {
   id: number;
   name: string;
@@ -11,57 +11,61 @@ interface DatasetAttributes {
   userId: number;
 }
 
-interface DatasetCreationAttributes extends Optional<DatasetAttributes, 'id'|'isCancelled'> {}
+// Define the attributes for Dataset that can be optionally provided when creating
+interface DatasetCreationAttributes extends Optional<DatasetAttributes, 'id' | 'isCancelled'> {}
 
+// Define the Dataset model class
 class Dataset extends Model<DatasetAttributes, DatasetCreationAttributes> implements DatasetAttributes {
-    public id!: number;
-    public name!: string;
-    public description!: string;
-    public userId!: number;
-    public isCancelled!: boolean;
+  public id!: number;
+  public name!: string;
+  public description!: string;
+  public userId!: number;
+  public isCancelled!: boolean;
 
-    public readonly createdAt!: Date;
-    public readonly updatedAt!: Date;
+  // timestamps
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
+}
+
+// Initialize the Dataset model
+Dataset.init(
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+      allowNull: false
+    },
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
+    description: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
+    userId: {
+      type: DataTypes.INTEGER,
+      allowNull: false
+    },
+    isCancelled: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      allowNull: false
     }
-  
-    Dataset.init(
-        {
-          id: {
-            type: DataTypes.INTEGER,
-            primaryKey: true,
-            unique: true,
-            autoIncrement:true,
-            allowNull: false
-          },
-          name: {
-            type: DataTypes.STRING,
-            allowNull: false
-          },
-          description: {
-            type: DataTypes.STRING,
-            allowNull: false,
-          },
-          userId: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-          },
-          isCancelled: {
-            type: DataTypes.BOOLEAN,
-            defaultValue: false,
-            allowNull: false,
-          },
-        },
-        {
-          sequelize: db,
-          modelName: 'Dataset',
-          tableName: 'datasets',
-          timestamps: true,
-        }
-      );
-      
-    Dataset.hasMany(Spectrogram, { foreignKey: 'datasetId' });
-    Spectrogram.belongsTo(Dataset, { foreignKey: 'datasetId' });
-        
+  },
+  {
+    sequelize: db, // Sequelize instance
+    modelName: 'Dataset', // Model name in Sequelize
+    tableName: 'datasets', // Table name in the database
+    timestamps: true, // Enable timestamps
+  }
+);
 
-    export default Dataset;
-    export { DatasetAttributes, DatasetCreationAttributes };
+// Define associations
+Dataset.hasMany(Spectrogram, { foreignKey: 'datasetId' }); // Dataset has many Spectrograms
+Spectrogram.belongsTo(Dataset, { foreignKey: 'datasetId' }); // Spectrogram belongs to Dataset
+
+// Export the Dataset model and its attribute interfaces
+export default Dataset;
+export { DatasetAttributes, DatasetCreationAttributes };

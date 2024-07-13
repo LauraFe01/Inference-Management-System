@@ -2,7 +2,7 @@ import { Sequelize } from 'sequelize';
 import * as fs from 'fs';
 
 // Leggi il certificato CA dal file system
-const ca = fs.readFileSync('../ca.pem').toString();
+const ca = fs.readFileSync('./Config/ca.pem').toString();
 
 console.log("Hello world")
 

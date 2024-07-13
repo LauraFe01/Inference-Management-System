@@ -1,0 +1,24 @@
+services:
+  node_app:
+    build:
+      context: ./ApplicazioneNode
+      dockerfile: Dockerfile
+    ports:
+      - 3000:3000
+    depends_on:
+      - flask_app
+      - redis
+
+  flask_app:
+    build:
+      context: ./DeepLearning
+      dockerfile: Dockerfile
+    ports:
+      - 8080:5000
+    volumes:
+      - ./DeepLearning:/usr/app
+
+  redis:
+    image: redis
+    ports:
+      - 6379:6379
