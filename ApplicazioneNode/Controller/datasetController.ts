@@ -8,7 +8,7 @@ import axios from 'axios';
 import {updateToken} from '../utils';
 import { User} from '../Model/init_database';
 import { inferenceQueue } from '../Queue/inferenceQueue';
-import inferenceWorker from "../Worker/inferenceWorker";
+import '../Worker/inferenceWorker';
 import { QueueEvents } from 'bullmq';
 
 const datasetApp = new DatasetDAOApplication();
@@ -147,20 +147,21 @@ export const datasetController = {
         };
 
         try {
-          queueEvents.on('completed', ({ jobId }) => {
-            if (jobId === job.id) {
-              res.json({ message: 'Inferenza completata' });
-            }
-          });
-          
-          queueEvents.on('failed', ({ jobId, failedReason }) => {
-            if (jobId === job.id) {
-              res.status(500).json({ error: 'Inferenza fallita' });
-            }
-          });
       
           const job = await inferenceQueue.add('performInference', {modelId,spectrograms});
           const jobId= job.id;
+
+          queueEvents.on('completed', ({ jobId: completedJobId }) => {
+            if (completedJobId === jobId) {
+              res.json({ message: 'Inferenza completata' });
+            }
+          });
+  
+          queueEvents.on('failed', ({ jobId: failedJobId, failedReason }) => {
+            if (failedJobId === jobId) {
+              res.status(500).json({ error: 'Inferenza fallita', reason: failedReason });
+            }
+          });
       
           res.json({message: 'Inferenza aggiunta in coda con id: ', jobId});
         } catch (error) {
@@ -184,6 +185,9 @@ export const datasetController = {
         return res.status(404).json({ error: 'Job non trovato' });
       }
       if (await job.isCompleted()) {
+
+        console.log(job);
+
         res.json({ status: 'Completed', result: job.returnvalue });
       } else if (await job.isFailed()) {
         res.status(500).json({ status: 'Failed', failedReason: job.failedReason });
