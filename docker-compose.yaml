@@ -10,8 +10,8 @@ services:
     depends_on:
       - flask_app
       - redis
-    variables:
-      - ./.env  
+    env_file:
+      - ./ApplicazioneNode/.env  
 
   flask_app:
     build:

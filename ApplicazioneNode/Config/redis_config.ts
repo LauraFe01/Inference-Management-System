@@ -3,6 +3,6 @@ dotenv.config();
 
 export const redisOptions = {
   host: process.env.REDIS_HOST|| 'localhost',
-  port: process.env.REDIS_PORT || 6379
+  port: Number(process.env.REDIS_PORT) || 6379
   };
   
