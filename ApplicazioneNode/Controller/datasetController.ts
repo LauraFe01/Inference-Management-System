@@ -4,7 +4,7 @@ import { DatasetCreationAttributes } from '../Model/dataset';
 import DatasetDAOApplication from '../DAO/datasetDao';
 import UserDAOApplication from '../DAO/userDao';
 import SpectrogramDAOApplication from '../DAO/spectrogramDao';
-import { updateToken } from '../utils';
+import { updateToken } from '../Utils/utils';
 import { User } from '../Model/init_database';
 import { inferenceQueue } from '../Config/inferenceQueue_config';
 import '../Worker/inferenceWorker'; // Assuming this imports a worker for inference processing

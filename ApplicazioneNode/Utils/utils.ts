@@ -1,4 +1,4 @@
-import { User } from "./Model/user"
+import { User } from "../Model/user"
 
 export function updateToken(type: string, user: User, numElem: number){
     let tokenUsed = 0
