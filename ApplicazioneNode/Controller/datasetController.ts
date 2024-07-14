@@ -170,7 +170,8 @@ export const datasetController = {
 
         await userApp.updateUser(userObj, updateValues); // Update user tokens
       } else {
-        return res.status(401).send('Not authorized');
+        const job = await inferenceQueue.add('Aborted', { reason: 'Insufficient tokens' });
+        res.status(401).json({ status: 'Aborted', error: 'Insufficient tokens. Aborted.', jobId: job.id });
       }
     }
   },
@@ -191,7 +192,9 @@ export const datasetController = {
         return res.status(404).json({ error: 'Job not found' });
       }
 
-      if (await job.isCompleted()) {
+      if(job.name==='Aborted'){
+        res.json({ status: 'Aborted', reason: job.data.reason });
+      } else if (await job.isCompleted()) {
         res.json({ status: 'Completed', result: job.returnvalue });
       } else if (await job.isFailed()) {
         if (job.failedReason === 'Job aborted') {
@@ -214,31 +217,7 @@ export const datasetController = {
     }
   },
 
-  // Endpoint to abort an inference job by jobId
-  abortInference: async (req: Request, res: Response) => {
-    const jobId = req.params.jobId;
-
-    if (!jobId) {
-      return res.status(400).send({ error: 'Missing required fields in body (jobId)' });
-    } else if (jobId.length === 0) {
-      return res.status(401).send({ error: 'No Job found with that id!' });
-    }
-
-    try {
-      const job = await inferenceQueue.getJob(jobId);
-      if (!job) {
-        res.status(404).json({ error: 'Job not found' });
-      } else {
-        await job.discard();
-        await job.moveToFailed(new Error('Job aborted'), jobId, true);
-        res.json({ status: 'Aborted' });
-      }
-    } catch (error) {
-      console.error('Error aborting job:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
-    }
-  },
-
+ 
   // Endpoint to get all datasets belonging to a user
   getAllDatasets: async (req: Request, res: Response) => {
     const userData = getDecodedToken(req);
