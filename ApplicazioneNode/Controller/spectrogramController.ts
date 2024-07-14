@@ -17,16 +17,18 @@ const spectrogramDao = new SpectrogramDAOApplication();
 export const spectrogramController = {
   // Endpoint to add a single spectrogram
   addSpectrogram: async (req: Request, res: Response) => {
-    const { filepath, datasetName } = req.body;
-    const fileName = path.basename(filepath);
+    if (!req.file) {
+      return res.status(400).json({ error: 'File upload is required' });
+    }
 
-    // Check if required fields are missing
-    if (!filepath || !datasetName) {
+    const { datasetName } = req.body;
+    const pathName = req.file.originalname
+    const fileName = path.basename(pathName);
+
+    if (!pathName || !datasetName) {
       return res.status(400).json({ error: 'Missing required fields (filepath, datasetName)' });
-    } else if (datasetName.length === 0) {
-      return res.status(401).send({ error: 'No Dataset with that name!' });
     } else if (!fileName.endsWith('.png')) {
-      return res.status(500).json({ error: 'Invalid file format. Expected .png' });
+      return res.status(400).json({ error: 'Invalid file format. Expected .png' });
     }
 
     try {
@@ -43,36 +45,27 @@ export const spectrogramController = {
 
         // Update token usage for uploading an image
         const tokenRemaining = updateToken('uploadImage', userObj!, 1);
-        if (tokenRemaining >= 0 && userObj) {
-          const updateValues: Partial<User> = { numToken: tokenRemaining };
-          await userApp.updateUser(userObj, updateValues);
-        } else {
+        if (tokenRemaining < 0 || !userObj) {
           return res.status(401).send('Not authorized');
         }
+    
+        await userApp.updateUser(userObj, { numToken: tokenRemaining });
 
         // Fetch dataset information by name
         const datasetData = await datasetApp.getByName(datasetName, userId);
         if (!datasetData || datasetData.userId !== userId) {
           return res.status(403).json({ error: 'User does not own the dataset' });
         }
-        const datasetID = datasetData.id;
 
-        // Read file data and create a new spectrogram object
-        try {
-          let bufferData = await fs.readFile(filepath);
-          const newSpectrogram: SpectrogramCreationAttributes = {
-            name: fileName,
-            data: bufferData,
-            datasetId: datasetID,
-          };
+        const newSpectrogram = {
+          name: fileName,
+          data: req.file.buffer,
+          datasetId: datasetData.id,
+        };
 
-          // Save the spectrogram to the database
-          await spectrogramDao.addSpectrogram(newSpectrogram);
-          return res.status(201).json(newSpectrogram);
-        } catch (err) {
-          console.error('Error reading file:', err);
-          return res.status(500).json({ error: 'Error reading file' });
-        }
+        // Save the spectrogram to the database
+        await spectrogramDao.addSpectrogram(newSpectrogram);
+        return res.status(201).json(newSpectrogram);
       }
     } catch (error) {
       console.error('Error adding spectrogram:', error);
@@ -83,15 +76,13 @@ export const spectrogramController = {
   // Endpoint to upload a zip file containing spectrogram images
   uploadFile: async (req: Request, res: Response) => {
     try {
-      const { folderpath, datasetName } = req.body;
+      const { datasetName } = req.body;
 
       // Check if required fields are missing
-      if (!folderpath || !datasetName) {
+      if (!req.file || !datasetName) {
         return res.status(400).json({ error: 'Missing required fields (folderpath, datasetName)' });
-      } else if (datasetName.length === 0) {
-        return res.status(401).send({ error: 'No Dataset with that name!' });
-      } else if (!folderpath.endsWith('.zip')) {
-        return res.status(500).json({ error: 'Invalid file format. Expected .zip' });
+      } else if (!req.file.originalname.endsWith('.zip')) {
+        return res.status(400).json({ error: 'Invalid file format. Expected .zip' });
       }
 
       // Decode user token to get user data
@@ -113,19 +104,18 @@ export const spectrogramController = {
 
         try {
           // Extract and process zip file
-          const zip = new AdmZip(folderpath);
+          const zip = new AdmZip(req.file.buffer);
           const zipEntries = zip.getEntries();
           const datasetID = datasetData.id;
           const numEntries = zipEntries.length;
 
           // Update token usage for uploading the zip file
           const tokenRemaining = updateToken('uploadZip', userObj!, numEntries);
-          if (tokenRemaining >= 0 && userObj) {
-            const updateValues: Partial<User> = { numToken: tokenRemaining };
-            await userApp.updateUser(userObj, updateValues);
-          } else {
+          if (tokenRemaining < 0 || !userObj) {
             return res.status(401).send('Not authorized');
           }
+      
+          await userApp.updateUser(userObj, { numToken: tokenRemaining });
 
           // Iterate through zip entries and add valid .png files as spectrograms
           for (const zipEntry of zipEntries) {
