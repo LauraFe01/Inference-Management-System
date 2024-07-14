@@ -1,5 +1,5 @@
 import express from 'express';
-import { authMiddleware, isAdminMiddleware} from '../Token/middleware';
+import { authMiddleware, isAdminMiddleware} from '../middleware';
 import { userController } from '../Controller/userController';
 
 const router = express.Router();

@@ -1,5 +1,5 @@
 import express from 'express';
-import { authMiddleware} from '../Token/middleware';
+import { authMiddleware} from '../middleware';
 import { datasetController } from '../Controller/datasetController';
 
 const router = express.Router();
@@ -10,6 +10,5 @@ router.patch('/dataset/:name/update', authMiddleware, datasetController.updateDa
 router.post('/startInference/:datasetName', authMiddleware, datasetController.startInference);
 router.get('/allDatasets', authMiddleware, datasetController.getAllDatasets);
 router.get('/inferenceStatus/:jobId', authMiddleware, datasetController.getInferenceStatus);
-router.post('/abortInference/:jobId', authMiddleware, datasetController.abortInference);
 
 export default router;

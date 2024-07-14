@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
 import UserDAOApplication from '../DAO/userDao';
 import jwt from 'jsonwebtoken';
-import { getDecodedToken } from '../Token/token';
-import config from '../Token/configJWT';
+import { getDecodedToken } from '../Utils/token_utils';
+import config from '../Config/JWT_config';
 
 const userApp = new UserDAOApplication();
 
@@ -34,7 +34,7 @@ export const userController = {
           // Set Authorization header with Bearer token
           res.set('Authorization', `Bearer ${token}`);
           // Respond with the token
-          res.status(201).send(token);
+          res.status(201).json({ token });
         }
       }
     } catch (error) {
@@ -55,7 +55,7 @@ export const userController = {
           // Fetch remaining tokens by user ID
           const numToken = await userApp.getTokensNumById(id);
           // Respond with the number of tokens
-          res.json({ numToken });
+          res.status(201).json({ numToken });
         } catch (error) {
           console.error('Error during query:', error);
           res.status(500).send({ error: 'Internal Server Error' });

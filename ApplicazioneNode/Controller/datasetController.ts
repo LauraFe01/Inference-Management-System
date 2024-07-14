@@ -1,12 +1,12 @@
 import { Request, Response } from 'express';
-import { getDecodedToken } from '../Token/token';
+import { getDecodedToken } from '../Utils/token_utils';
 import { DatasetCreationAttributes } from '../Model/dataset';
 import DatasetDAOApplication from '../DAO/datasetDao';
 import UserDAOApplication from '../DAO/userDao';
 import SpectrogramDAOApplication from '../DAO/spectrogramDao';
 import { updateToken } from '../utils';
 import { User } from '../Model/init_database';
-import { inferenceQueue } from '../Queue/inferenceQueue';
+import { inferenceQueue } from '../Config/inferenceQueue_config';
 import '../Worker/inferenceWorker'; // Assuming this imports a worker for inference processing
 import { QueueEvents } from 'bullmq';
 import { redisOptions } from '../Config/redis_config';
@@ -153,7 +153,7 @@ export const datasetController = {
           // Listen for completion and failure events from queue
           queueEvents.on('completed', ({ jobId: completedJobId }) => {
             if (completedJobId === jobId) {
-              res.json({ message: 'The inference is completed!' });
+              res.status(201).json({ message: 'The inference is completed!' });
             }
           });
           queueEvents.on('failed', ({ jobId: failedJobId, failedReason }) => {

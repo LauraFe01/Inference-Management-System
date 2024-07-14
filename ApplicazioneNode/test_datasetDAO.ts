@@ -13,7 +13,7 @@ async function runTests() {
   const newDataset: DatasetCreationAttributes = {
     name: 'Test Dataset',
     description: 'This is a test dataset',
-    userId: '14', 
+    userId: 1, 
   }
 
   try {
