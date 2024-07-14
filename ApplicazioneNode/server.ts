@@ -4,9 +4,11 @@ import { initModels } from './Model/init_database';
 import datasetRoutes from './Routes/datasetRoutes';
 import userRoutes from './Routes/userRoutes';
 import spectrogramRoutes from './Routes/spectrogramRoutes';
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 const app = express();
-const port = 3000;
+const port = process.env.SERVER_PORT;
 
 
 app.use(bodyParser.json());

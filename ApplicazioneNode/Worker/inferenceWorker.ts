@@ -1,6 +1,7 @@
-import { Worker } from 'bullmq';
+import { Worker, ConnectionOptions } from 'bullmq';
 import { redisOptions } from '../Config/redis_config';
 import axios from 'axios';
+//import { ConnectionOptions } from 'sequelize';
 
 const inferenceWorker = new Worker('inferenceQueue', async job=>{
   try {
@@ -18,7 +19,7 @@ const inferenceWorker = new Worker('inferenceQueue', async job=>{
     console.error('Error processing inference job:', error);
   }
 },{
-  connection: redisOptions
+  connection: redisOptions as ConnectionOptions
 })
 
 export default inferenceWorker;

@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import express from 'express';
 import { Request, Response, NextFunction } from 'express';
 import { getDecodedToken } from './Utils/token_utils';
+import JWT_config from './Config/JWT_config';
 
 // const middlewareProva = require('./middlewareProva')
 // const auth = require('./auth')
@@ -31,7 +32,7 @@ function authMiddleware(req: Request, res: Response, next: NextFunction){
   const token = authHeader.split(' ')[1];
 
   try {
-    const  decodedToken= jwt.verify(token, 'mysupersecretkey');
+    const  decodedToken= jwt.verify(token, JWT_config.jwtSecret);
     console.log('token', JSON.stringify(decodedToken, null, 2))
     res.locals.decodedToken = decodedToken;
   

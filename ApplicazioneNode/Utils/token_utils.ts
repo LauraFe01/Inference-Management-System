@@ -1,5 +1,6 @@
 import { Request} from 'express';
 import jwt from 'jsonwebtoken';
+import JWT_config from '../Config/JWT_config';
 
 export function getDecodedToken(req: Request){
     const authHeader = req.headers.authorization;
@@ -7,7 +8,7 @@ export function getDecodedToken(req: Request){
     if(authHeader){
     const token = authHeader.split(' ')[1];
     try {
-      const decodedToken= jwt.verify(token, 'mysupersecretkey');
+      const decodedToken= jwt.verify(token, JWT_config.jwtSecret);
       console.log('token', JSON.stringify(decodedToken, null, 2))
       return decodedToken
 

@@ -1,5 +1,8 @@
 import { Sequelize } from 'sequelize';
 import * as fs from 'fs';
+import * as dotenv from 'dotenv';
+
+dotenv.config();
 
 // Leggi il certificato CA dal file system
 const ca = fs.readFileSync('./Config/ca.pem').toString();
@@ -11,11 +14,11 @@ class Database {
     private sequelize: Sequelize;
 
     private constructor() {
-        this.sequelize = new Sequelize('progettoPA', 'avnadmin', 'AVNS_qcf614JMDUL6nNWPIqx', {
-            host: 'pg-1988b497-progettopa3-dbb5.k.aivencloud.com',
+        this.sequelize = new Sequelize(process.env.DB_NAME!, process.env.DB_USER!, process.env.DB_PASSWORD!, {
+            host: process.env.DB_HOST,
             dialect: 'postgres',
             logging: false,
-            port: 12479,
+            port: Number(process.env.DB_PORT),
             dialectOptions: {
                 ssl: {
                     rejectUnauthorized: true,
