@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import path from 'path';
-import { getDecodedToken } from '../Token/token';
+import { getDecodedToken } from '../Utils/token_utils';
 import { updateToken } from '../utils';
 import { User } from '../Model/init_database';
 import UserDAOApplication from '../DAO/userDao';
@@ -15,7 +15,7 @@ const datasetApp = new DatasetDAOApplication();
 const spectrogramDao = new SpectrogramDAOApplication();
 
 export const spectrogramController = {
-  // Endpoint to add a single spectrogram
+
   addSpectrogram: async (req: Request, res: Response) => {
     if (!req.file) {
       return res.status(400).json({ error: 'File upload is required' });
@@ -32,7 +32,6 @@ export const spectrogramController = {
     }
 
     try {
-      // Decode user token to get user data
       const userData = getDecodedToken(req);
       if (!userData) {
         return res.status(404).json({ error: 'User not found' });

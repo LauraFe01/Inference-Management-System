@@ -1,5 +1,5 @@
 import express from 'express';
-import { authMiddleware} from '../Token/middleware';
+import { authMiddleware} from '../middleware';
 import { spectrogramController } from '../Controller/spectrogramController';
 import multer from 'multer';
 

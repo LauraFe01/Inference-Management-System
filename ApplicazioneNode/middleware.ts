@@ -1,8 +1,8 @@
-import DatasetDAOApplication from '../DAO/datasetDao';
+import DatasetDAOApplication from './DAO/datasetDao';
 import jwt from 'jsonwebtoken';
 import express from 'express';
 import { Request, Response, NextFunction } from 'express';
-import { getDecodedToken } from './token';
+import { getDecodedToken } from './Utils/token_utils';
 
 // const middlewareProva = require('./middlewareProva')
 // const auth = require('./auth')
