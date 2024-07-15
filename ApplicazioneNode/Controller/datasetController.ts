@@ -141,7 +141,7 @@ export const datasetController = {
 
       const spectrograms = await spectrogramDao.getAllSpectrogramsByDataset(dataset.id);
       const numSpectrograms = spectrograms.length;
-      const tokenRemaining = updateToken("Inference", userObj!, numSpectrograms);
+      const tokenRemaining = updateToken("inference", userObj!, numSpectrograms);
 
       if (tokenRemaining >= 0 && userObj) {
         const updateValues: Partial<User> = { numToken: tokenRemaining };

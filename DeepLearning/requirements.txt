@@ -1,6 +1,3 @@
 torch
-torchsummary
 numpy
 flask
-Flask-Cors
-Pillow

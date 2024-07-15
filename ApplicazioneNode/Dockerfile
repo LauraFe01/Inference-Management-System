@@ -6,8 +6,8 @@ COPY package*.json ./
 
 RUN npm install
 
-RUN npm install -g ts-node
+RUN npm install -g ts-node nodemon
 
 COPY . .
 
-CMD ["ts-node", "server.ts"]
+CMD ["nodemon", "--exec", "ts-node", "server.ts"]
