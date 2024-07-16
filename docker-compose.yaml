@@ -3,26 +3,30 @@ services:
     build:
       context: ./ApplicazioneNode
       dockerfile: Dockerfile
-    ports:
-      - 3000:3000
     volumes:
       - ./ApplicazioneNode:/usr/app
     depends_on:
       - flask_app
       - redis
     env_file:
-      - ./ApplicazioneNode/.env  
+      - .env  
+    ports:
+      - "${APP_INTERNAL_PORT}:${APP_EXTERNAL_PORT}"
 
   flask_app:
     build:
       context: ./DeepLearning
       dockerfile: Dockerfile
+    env_file:
+      - .env
     ports:
-      - 8080:5000
+      - "${FLASK_INTERNAL_PORT}:${FLASK_EXTERNAL_PORT}"
     volumes:
       - ./DeepLearning:/usr/app
 
   redis:
     image: redis
+    env_file:
+      - .env
     ports:
-      - 6379:6379
+      - "${REDIS_INTERNAL_PORT}:${REDIS_EXTERNAL_PORT}"
