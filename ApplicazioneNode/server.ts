@@ -5,6 +5,7 @@ import datasetRoutes from './Routes/datasetRoutes';
 import userRoutes from './Routes/userRoutes';
 import spectrogramRoutes from './Routes/spectrogramRoutes';
 import * as dotenv from 'dotenv';
+import errorHandler from './Errors/errorHandler';
 dotenv.config();
 
 const app = express();
@@ -16,6 +17,7 @@ app.use(bodyParser.json());
 app.use(datasetRoutes);
 app.use(userRoutes);
 app.use(spectrogramRoutes);
+app.use(errorHandler);
 
 (async () => {
   try {

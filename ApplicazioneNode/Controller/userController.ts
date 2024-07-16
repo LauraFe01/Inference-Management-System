@@ -1,88 +1,88 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import UserDAOApplication from '../DAO/userDao';
 import jwt from 'jsonwebtoken';
 import { getDecodedToken } from '../Utils/token_utils';
 import config from '../Config/JWT_config';
+import ErrorFactory, { ErrorType } from '../Errors/errorFactory';
 
 const userApp = new UserDAOApplication();
 
 export const userController = {
   // Endpoint to handle user login
-  login: async (req: Request, res: Response) => {
+  login: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { email, password } = req.body;
 
-      // Check if email and password are provided
       if (!email || !password) {
-        return res.status(400).send({ error: 'Missing required fields (email, password)' });
+        throw ErrorFactory.createError(ErrorType.MissingParameterError, 'Missing required fields (email, password)');
+      }
+
+      const user = await userApp.getUserByEmailPass(email);
+
+      if (user.length === 0) {
+        throw ErrorFactory.createError(ErrorType.NotFoundError, 'No User with that email!');
+      } else if (user[0].password !== password) {
+        throw ErrorFactory.createError(ErrorType.UnauthorizedError, 'Wrong Password inserted');
       } else {
-        // Attempt to fetch user by email and password
-        const user = await userApp.getUserByEmailPass(email);
-        
-        // If no user found with the provided email
-        if (user.length === 0) {
-          return res.status(401).send({ error: 'No User with that email!' });
-        } else if (user[0].password !== password) { // Check if password matches
-          return res.status(401).send({ error: 'Wrong Password inserted' });
-        } else {
-          // Generate JWT token if credentials are correct
-          const token = jwt.sign(
-            { id: user[0].id, isAdmin: user[0].isAdmin },
-            config.jwtSecret,
-            { expiresIn: config.jwtExpiration }
-          );
-          // Set Authorization header with Bearer token
-          res.set('Authorization', `Bearer ${token}`);
-          // Respond with the token
-          res.status(201).json({ token });
-        }
+        const token = jwt.sign(
+          { id: user[0].id, isAdmin: user[0].isAdmin },
+          config.jwtSecret,
+          { expiresIn: config.jwtExpiration }
+        );
+        res.set('Authorization', `Bearer ${token}`);
+        res.status(200).json({ 
+          status: 'successfully logged in ',
+          statusCode: 200,
+          token });
       }
     } catch (error) {
-      console.error('Error during login:', error);
-      res.status(500).send({ error: 'Internal Server Error' });
+      next(error); 
     }
   },
 
-  // Endpoint to get remaining tokens for a user
-  getRemainingTokens: async (req: Request, res: Response) => {
-    const userData = getDecodedToken(req);
-    if (!userData) {
-      return res.status(404).json({ error: 'User not found' });
-    } else {
+  getRemainingTokens: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userData = getDecodedToken(req);
+      if (!userData) {
+        throw ErrorFactory.createError(ErrorType.NotFoundError, 'Logged user not found');
+      }
+
       if (typeof userData !== 'string') {
         const id = userData.id;
-        try {
-          // Fetch remaining tokens by user ID
-          const numToken = await userApp.getTokensNumById(id);
-          // Respond with the number of tokens
-          res.status(201).json({ numToken });
-        } catch (error) {
-          console.error('Error during query:', error);
-          res.status(500).send({ error: 'Internal Server Error' });
-        }
+        const numToken = await userApp.getTokensNumById(id);
+        res.status(200).json({ 
+          status: 'OK ',
+          statusCode: 200,
+          numToken });
       }
+      }
+     catch (error) {
+      next(error);
     }
   },
 
-  // Endpoint to refill tokens for a user
-  refillTokens: async (req: Request, res: Response) => {
-    const { userEmail, newTokens } = req.body;
+  refillTokens: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      // Fetch user by email to refill tokens
-      const user = await userApp.getUserByEmailPass(userEmail);
-      if (user) {
-        const numToken = user[0].numToken + newTokens; // Calculate new token count
-        // Update user's token count
-        await userApp.updateUser(user[0], { numToken });
-        // Respond with success message and updated token count
-        return res.status(201).json({ message: 'Token number updated', userEmail, numToken });
-      } else {
-        // If user not found
-        return res.status(404).json({ error: 'User not found' });
+      const { userEmail, newTokens } = req.body;
+
+      if (!userEmail || !newTokens) {
+        throw ErrorFactory.createError(ErrorType.MissingParameterError, 'Missing required fields (userEmail, newTokens)');
       }
+      if (typeof newTokens !=='number'){
+        throw ErrorFactory.createError(ErrorType.ValidationError, 'newTokens must be a number');
+      }
+
+      const user = await userApp.getUserByEmailPass(userEmail);
+
+      if (user.length === 0) {
+        throw ErrorFactory.createError(ErrorType.NotFoundError, 'User not found');
+      }
+
+      const numToken = user[0].numToken + newTokens;
+      await userApp.updateUser(user[0], { numToken });
+      res.status(201).json({ message: 'Token number updated', statusCode: 201, userEmail, numToken });
     } catch (error) {
-      console.error('Error during token refill:', error);
-      return res.status(500).json({ error: 'Internal server error' });
+      next(error);
     }
   },
 };

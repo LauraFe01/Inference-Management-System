@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { getDecodedToken } from '../Utils/token_utils';
 import { DatasetCreationAttributes } from '../Model/dataset';
 import DatasetDAOApplication from '../DAO/datasetDao';
@@ -10,6 +10,7 @@ import { inferenceQueue } from '../Config/inferenceQueue_config';
 import '../Worker/inferenceWorker'; // Assuming this imports a worker for inference processing
 import { QueueEvents } from 'bullmq';
 import { redisOptions } from '../Config/redis_config';
+import ErrorFactory, { ErrorType } from '../Errors/errorFactory';
 
 const datasetApp = new DatasetDAOApplication();
 const userApp = new UserDAOApplication();
@@ -22,17 +23,17 @@ const queueEvents = new QueueEvents('Inference', {
 
 export const datasetController = {
   // Endpoint to create an empty dataset
-  createEmptyDataset: async (req: Request, res: Response) => {
+  createEmptyDataset: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { name, description } = req.body;
       if (!name || !description) {
-        return res.status(400).send({ error: 'Missing required fields in body (name, description)' });
+        throw ErrorFactory.createError(ErrorType.MissingParameterError, 'Missing required fields in body (name, description)');
       } else if (name.length === 0) {
-        return res.status(401).send({ error: 'No Dataset with that name!' });
+        throw ErrorFactory.createError(ErrorType.ValidationError, 'Not valid name!');
       }
       const userData = getDecodedToken(req);
       if (!userData) {
-        return res.status(404).json({ error: 'User not found' });
+        throw ErrorFactory.createError(ErrorType.NotFoundError, 'User not found');
       } else {
         if (typeof userData !== 'string') {
           const userId = userData.id;
@@ -42,157 +43,153 @@ export const datasetController = {
             userId,
           };
           await datasetApp.addDataset(newDataset);
-          res.status(201).send(newDataset); // Send success response with created dataset
+          res.status(201).send({status: 'Empty Dataset added', statusCode: 201, newDataset}); // Send success response with created dataset
         }
       }
     } catch (error) {
-      console.error('Error creating dataset:', error);
-      res.status(500).send({ error: 'Internal Server Error during dataset creation' });
+      next(error);
     }
   },
 
   // Endpoint to cancel a dataset by name
-  cancelDataset: async (req: Request, res: Response) => {
-    const datasetName = req.params.name;
-    const userData = getDecodedToken(req);
+  cancelDataset: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const datasetName = req.params.name;
+      const userData = getDecodedToken(req);
 
-    if (!datasetName) {
-      return res.status(400).send({ error: 'Missing required fields in body (datasetName)' });
-    } else if (datasetName.length === 0) {
-      return res.status(401).send({ error: 'No Dataset with that name!' });
-    }
+      if (!datasetName) {
+        throw ErrorFactory.createError(ErrorType.MissingParameterError, 'Missing required fields in body (datasetName)');
+      }
 
-    if (userData && typeof userData !== 'string') {
-      const userId = userData.id;
-      try {
+      if (userData && typeof userData !== 'string') {
+        const userId = userData.id;
         const dataset = await datasetApp.getByName(datasetName, userId);
         if (!dataset) {
-          return res.status(404).json({ error: 'Dataset not found' });
+          throw ErrorFactory.createError(ErrorType.NotFoundError, 'Dataset not found');
         }
         await datasetApp.updateDataset(dataset, { isCancelled: true });
-        res.status(200).json({ message: 'Dataset cancelled successfully' });
-      } catch (error) {
-        console.error('Error cancelling dataset:', error);
-        res.status(500).json({ error: 'Internal Server Error during dataset cancellation' });
+        res.status(200).json({ message: 'Dataset cancelled successfully', statusCode: 200});
       }
+    } catch (error) {
+      next(error);
     }
   },
 
   // Endpoint to update a dataset by name
-  updateDataset: async (req: Request, res: Response) => {
-    const datasetName = req.params.name;
-    const updateFields = req.body;
+  updateDataset: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const datasetName = req.params.name;
+      const updateFields = req.body;
 
-    if (!updateFields) {
-      return res.status(400).send({ error: 'Missing fields to be updated' });
-    } else if (!datasetName) {
-      return res.status(400).send({ error: 'Missing required fields in body (datasetName)' });
-    } else if (datasetName.length === 0) {
-      return res.status(401).send({ error: 'No Dataset with that name!' });
-    }
+      if (!updateFields) {
+        throw ErrorFactory.createError(ErrorType.MissingParameterError, 'Missing fields to be updated');
+      } else if (!datasetName) {
+        throw ErrorFactory.createError(ErrorType.MissingParameterError, 'Missing required field in body (datasetName)');
+      }
 
-    const userData = getDecodedToken(req);
-    if (!userData) {
-      return res.status(404).json({ error: 'User not found' });
-    } else {
-      if (typeof userData !== 'string') {
-        const id = userData.id;
-        try {
+      const userData = getDecodedToken(req);
+      if (!userData) {
+        throw ErrorFactory.createError(ErrorType.NotFoundError, 'User not found');
+      } else {
+        if (typeof userData !== 'string') {
+          const id = userData.id;
           const dataset = await datasetApp.getByName(datasetName, id);
           if (!dataset) {
-            return res.status(404).json({ error: 'Dataset not found' });
+            throw ErrorFactory.createError(ErrorType.NotFoundError, 'Dataset not found');
           }
           await datasetApp.updateDataset(dataset, updateFields);
-          res.status(200).json(dataset);
-        } catch (error) {
-          console.error('Error updating dataset:', error);
-          res.status(500).json({ error: 'Internal server error during dataset update' });
+          res.status(200).json({status: 'Dataset successfully updated!', statusCode: 200, dataset});
         }
       }
+    } catch (error) {
+      next(error);
     }
   },
 
-  // Endpoint to start an inference process
-  startInference: async (req: Request, res: Response) => {
-    const { modelId } = req.body;
-    const allowedValues = ["10_patients_model", "20_patients_model"];
+  startInference: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { modelId } = req.body;
+      const allowedValues = ["10_patients_model", "20_patients_model"];
 
-    if (!modelId) {
-      return res.status(400).send({ error: 'The modelId is missing!' });
-    } else if (!allowedValues.includes(modelId)) {
-      return res.status(400).send({ error: 'ModelId value entered not allowed' });
-    }
-
-    const datasetName = req.params.datasetName;
-    const userData = getDecodedToken(req);
-
-    if (!userData) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    if (typeof userData !== 'string') {
-      const userId = userData.id;
-      const userObj = await userApp.getUser(userId);
-      const dataset = await datasetApp.getByName(datasetName, userId);
-
-      if (!dataset) {
-        return res.status(404).json({ error: 'Dataset not found' });
+      if (!modelId) {
+        throw ErrorFactory.createError(ErrorType.MissingParameterError, 'The modelId is missing! [10_patients_model, 20_patients_model]');
+      } else if (!allowedValues.includes(modelId)) {
+        throw ErrorFactory.createError(ErrorType.ValidationError, 'ModelId value entered not allowed [10_patients_model, 20_patients_model]');
       }
 
-      const spectrograms = await spectrogramDao.getAllSpectrogramsByDataset(dataset.id);
-      const numSpectrograms = spectrograms.length;
-      const tokenRemaining = updateToken("inference", userObj!, numSpectrograms);
+      const datasetName = req.params.datasetName;
+      const userData = getDecodedToken(req);
 
-      if (tokenRemaining >= 0 && userObj) {
-        const updateValues: Partial<User> = { numToken: tokenRemaining };
-        try {
-          // Add inference job to queue
-          const job = await inferenceQueue.add('Perform Inference', { modelId, spectrograms });
-          const jobId = job.id;
+      if (!userData) {
+        throw ErrorFactory.createError(ErrorType.NotFoundError, 'User not found');
+      }
 
-          // Listen for completion and failure events from queue
-          queueEvents.on('completed', ({ jobId: completedJobId }) => {
-            if (completedJobId === jobId) {
-              res.status(201).json({ message: 'The inference is completed!' });
-            }
-          });
-          queueEvents.on('failed', ({ jobId: failedJobId, failedReason }) => {
-            if (failedJobId === jobId) {
-              res.status(500).json({ error: 'Failed inference', reason: failedReason });
-            }
-          });
+      if (typeof userData !== 'string') {
+        const userId = userData.id;
+        const userObj = await userApp.getUser(userId);
+        const dataset = await datasetApp.getByName(datasetName, userId);
 
-          res.json({ message: 'Inference added to the queue with id:', jobId });
-        } catch (error) {
-          console.error('Error during the request to Flask:', error);
-          res.status(500).json({ error: 'Internal server error' });
+        if (!dataset) {
+          throw ErrorFactory.createError(ErrorType.NotFoundError, 'Dataset not found');
         }
 
-        await userApp.updateUser(userObj, updateValues); // Update user tokens
-      } else {
-        const job = await inferenceQueue.add('Aborted', { reason: 'Insufficient tokens' });
-        res.status(401).json({ status: 'Aborted', error: 'Insufficient tokens. Aborted.', jobId: job.id });
+        const spectrograms = await spectrogramDao.getAllSpectrogramsByDataset(dataset.id);
+        const numSpectrograms = spectrograms.length;
+        const tokenRemaining = updateToken("inference", userObj!, numSpectrograms);
+
+        if (tokenRemaining >= 0 && userObj) {
+          const updateValues: Partial<User> = { numToken: tokenRemaining };
+          try {
+            // Add inference job to queue
+            const job = await inferenceQueue.add('Perform Inference', { modelId, spectrograms });
+            const jobId = job.id;
+
+            // Listen for completion and failure events from queue
+            queueEvents.on('completed', ({ jobId: completedJobId }) => {
+              if (completedJobId === jobId) {
+                res.status(201).json({ status: 'The inference is completed!', statusCode: 201 });
+              }
+            });
+            queueEvents.on('failed', ({ jobId: failedJobId, failedReason }) => {
+              if (failedJobId === jobId) {
+                res.status(500).json({ error: 'Failed inference', reason: failedReason });
+              }
+            });
+
+            res.json({ message: 'Inference added to the queue with id:', jobId });
+          } catch (error) {
+            console.error('Error during the request to Flask:', error);
+            throw ErrorFactory.createError(ErrorType.InternalServerError, 'Internal server error');
+          }
+
+          await userApp.updateUser(userObj, updateValues); // Update user tokens
+        } else {
+          const job = await inferenceQueue.add('Aborted', { reason: 'Insufficient tokens' });
+          res.status(401).json({ status: 'Aborted', error: 'Insufficient tokens. Aborted.', jobId: job.id });
+        }
       }
+    } catch (error) {
+      next(error);
     }
   },
 
   // Endpoint to get status of an inference job by jobId
-  getInferenceStatus: async (req: Request, res: Response) => {
-    const jobId = req.params.jobId;
-
-    if (!jobId) {
-      return res.status(400).send({ error: 'Missing required fields in body (jobId)' });
-    } else if (jobId.length === 0) {
-      return res.status(401).send({ error: 'No Job found with that id!' });
-    }
-
+  getInferenceStatus: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const job = await inferenceQueue.getJob(jobId);
-      if (!job) {
-        return res.status(404).json({ error: 'Job not found' });
+      const jobId = req.params.jobId;
+
+      if (!jobId) {
+        throw ErrorFactory.createError(ErrorType.MissingParameterError, 'Missing required fields in body (jobId)');
+      } else if (jobId.length === 0) {
+        throw ErrorFactory.createError(ErrorType.ValidationError, 'No Job found with that id!');
       }
 
-      if(job.name==='Aborted'){
+      const job = await inferenceQueue.getJob(jobId);
+      if (!job) {
+        throw ErrorFactory.createError(ErrorType.NotFoundError, 'Job not found');
+      }
+
+      if (job.name === 'Aborted') {
         res.json({ status: 'Aborted', reason: job.data.reason });
       } else if (await job.isCompleted()) {
         res.json({ status: 'Completed', result: job.returnvalue });
@@ -212,27 +209,23 @@ export const datasetController = {
         res.json({ status: 'Unknown' });
       }
     } catch (error) {
-      console.error('Error getting job status:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      next(error);
     }
   },
-
  
-  // Endpoint to get all datasets belonging to a user
-  getAllDatasets: async (req: Request, res: Response) => {
-    const userData = getDecodedToken(req);
-    if (userData && typeof userData !== 'string') {
-      const userId = userData.id;
-      try {
+  getAllDatasets: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userData = getDecodedToken(req);
+      if (userData && typeof userData !== 'string') {
+        const userId = userData.id;
         const datasets = await datasetApp.getAllDatasetsByUser(userId);
         if (!datasets || datasets.length === 0) {
-          return res.status(404).json({ error: 'User does not have any datasets yet' });
+          throw ErrorFactory.createError(ErrorType.NotFoundError, 'User does not have any datasets yet');
         }
         res.status(200).json(datasets);
-      } catch (error) {
-        console.error('Error retrieving datasets:', error);
-        res.status(500).json({ error: 'Internal server error' });
       }
+    } catch (error) {
+      next(error);
     }
   },
 };

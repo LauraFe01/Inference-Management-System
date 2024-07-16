@@ -54,6 +54,7 @@ Spectrogram.init(
       timestamps: true,          
     }
 );
+
         
 // Export the Spectrogram model and its attribute interfaces
 export default Spectrogram; 

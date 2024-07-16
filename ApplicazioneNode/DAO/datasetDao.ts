@@ -2,6 +2,7 @@ import { Dao } from './dao';
 import Dataset from '../Model/dataset';
 import { DatasetCreationAttributes } from '../Model/dataset';
 import { UniqueConstraintError } from 'sequelize';
+import ErrorFactory, { ErrorType } from '../Errors/errorFactory';
 
 // Implementazione della classe DatasetDaoImpl che aderisce all'interfaccia Dao per il modello Dataset
 class DatasetDaoImpl implements Dao<Dataset> {
@@ -39,14 +40,11 @@ class DatasetDaoImpl implements Dao<Dataset> {
       });
   
         if (existingDataset && existingDataset.name == datasetAttributes.name) {
-          throw new Error(`Un dataset con il nome '${datasetAttributes.name}' già esiste per questo utente.`);
+          throw ErrorFactory.createError(ErrorType.ValidationError, `Dataset name ${datasetAttributes.name} not valid,user already has a dataset with this name`);
         }
       }
       await Dataset.create(datasetAttributes);
     } catch (error) {
-      if (error instanceof UniqueConstraintError) {
-        throw new Error('ID already exists');
-      }
       throw error;
     }
   }
@@ -60,6 +58,10 @@ class DatasetDaoImpl implements Dao<Dataset> {
   async update(dataset: Dataset, ...params: any[]): Promise<void> {
     const [updateValues] = params;
 
+    if (updateValues.id || updateValues.userId ) {
+      throw ErrorFactory.createError(ErrorType.FieldsNotUpdatable, 'id e userId cannot be updated!');
+    }
+
     if (updateValues.name) {
 
       const existingDataset = await Dataset.findOne({
@@ -70,7 +72,11 @@ class DatasetDaoImpl implements Dao<Dataset> {
       });
 
       if (existingDataset && existingDataset.name !== dataset.name) {
-        throw new Error(`Un dataset con il nome '${updateValues.name}' già esiste per questo utente.`);
+        throw ErrorFactory.createError(ErrorType.ValidationError, `Dataset name ${existingDataset.name} not valid, user already has a dataset with this name`);
+      }
+
+      if (existingDataset && existingDataset.name == updateValues.name && existingDataset.description == updateValues.description){
+        throw ErrorFactory.createError(ErrorType.ValidationError, 'Nothing to update!');
       }
     }
       await dataset.update(updateValues);

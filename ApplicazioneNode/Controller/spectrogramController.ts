@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import path from 'path';
 import { getDecodedToken } from '../Utils/token_utils';
 import { updateToken } from '../Utils/utils';
@@ -9,6 +9,8 @@ import DatasetDAOApplication from '../DAO/datasetDao';
 import SpectrogramDAOApplication from '../DAO/spectrogramDao';
 import AdmZip from 'adm-zip';
 import fs from 'fs/promises';
+import ErrorFactory, { ErrorType } from '../Errors/errorFactory';
+
 
 const userApp = new UserDAOApplication();
 const datasetApp = new DatasetDAOApplication();
@@ -16,44 +18,39 @@ const spectrogramDao = new SpectrogramDAOApplication();
 
 export const spectrogramController = {
 
-  addSpectrogram: async (req: Request, res: Response) => {
-    if (!req.file) {
-      return res.status(400).json({ error: 'File upload is required' });
-    }
-
-    const { datasetName } = req.body;
-    const pathName = req.file.originalname
-    const fileName = path.basename(pathName);
-
-    if (!pathName || !datasetName) {
-      return res.status(400).json({ error: 'Missing required fields (filepath, datasetName)' });
-    } else if (!fileName.endsWith('.png')) {
-      return res.status(400).json({ error: 'Invalid file format. Expected .png' });
-    }
-
+  addSpectrogram: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const userData = getDecodedToken(req);
-      if (!userData) {
-        return res.status(404).json({ error: 'User not found' });
+
+      const { datasetName } = req.body;
+
+      if (!req.file  || !datasetName) {
+        throw ErrorFactory.createError(ErrorType.MissingParameterError, 'Missing required fields (file, datasetName) in the body');
+      } else if (!req.file.originalname.endsWith('.png')) {
+        throw ErrorFactory.createError(ErrorType.UnsupportedMediaType, 'Unsupported file format. Expected .png');
       }
 
-      // Proceed if user data is valid
+      const pathName = req.file.originalname;
+      const fileName = path.basename(pathName);
+
+      const userData = getDecodedToken(req);
+      if (!userData) {
+        throw ErrorFactory.createError(ErrorType.NotFoundError, 'User logged not found');
+      }
+
       if (typeof userData !== 'string') {
         const userId = userData.id;
         const userObj = await userApp.getUser(userId);
 
-        // Update token usage for uploading an image
         const tokenRemaining = updateToken('uploadImage', userObj!, 1);
         if (tokenRemaining < 0 || !userObj) {
-          return res.status(401).send('Not authorized');
+          throw ErrorFactory.createError(ErrorType.TokenError);
         }
-    
+
         await userApp.updateUser(userObj, { numToken: tokenRemaining });
 
-        // Fetch dataset information by name
         const datasetData = await datasetApp.getByName(datasetName, userId);
         if (!datasetData || datasetData.userId !== userId) {
-          return res.status(403).json({ error: 'User does not own the dataset' });
+          throw ErrorFactory.createError(ErrorType.UnauthorizedError, 'User cannot access to this dataset');
         }
 
         const newSpectrogram = {
@@ -62,66 +59,56 @@ export const spectrogramController = {
           datasetId: datasetData.id,
         };
 
-        // Save the spectrogram to the database
         await spectrogramDao.addSpectrogram(newSpectrogram);
-        return res.status(201).json(newSpectrogram);
+        return res.status(201).json({status: 'spectrogram added', statusCode: 201, newSpectrogram});
       }
     } catch (error) {
-      console.error('Error adding spectrogram:', error);
-      return res.status(500).json({ error: 'Internal Server Error' });
+      next(error);
     }
   },
 
-  // Endpoint to upload a zip file containing spectrogram images
-  uploadFile: async (req: Request, res: Response) => {
+  uploadFile: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { datasetName } = req.body;
 
-      // Check if required fields are missing
       if (!req.file || !datasetName) {
-        return res.status(400).json({ error: 'Missing required fields (folderpath, datasetName)' });
+        throw ErrorFactory.createError(ErrorType.MissingParameterError, 'Missing required fields (file, datasetName)');
       } else if (!req.file.originalname.endsWith('.zip')) {
-        return res.status(400).json({ error: 'Invalid file format. Expected .zip' });
+        throw ErrorFactory.createError(ErrorType.UnsupportedMediaType, 'Unsupported file format. Expected .zip');
       }
 
-      // Decode user token to get user data
       const userData = getDecodedToken(req);
       if (!userData) {
-        return res.status(404).json({ error: 'User not found' });
+        throw ErrorFactory.createError(ErrorType.NotFoundError, 'User logged not found');
       }
 
-      // Proceed if user data is valid
       if (typeof userData !== 'string') {
         const userId = userData.id;
         const userObj = await userApp.getUser(userId);
         const datasetData = await datasetApp.getByName(datasetName, userId);
 
-        // Check ownership of the dataset
         if (!datasetData || datasetData.userId !== userId) {
-          return res.status(403).json({ error: 'User does not own the dataset' });
+          throw ErrorFactory.createError(ErrorType.UnauthorizedError, 'User cannot access to this dataset');
+        }
+          
+        const zip = new AdmZip(req.file.buffer);
+        const zipEntries = zip.getEntries();
+        const datasetID = datasetData.id;
+        const numEntries = zipEntries.length;
+
+        const tokenRemaining = updateToken('uploadZip', userObj!, numEntries);
+        console.log('herre', tokenRemaining)
+        if (tokenRemaining < 0 || !userObj) {
+          console.log('11111')
+          throw ErrorFactory.createError(ErrorType.TokenError);
         }
 
+        await userApp.updateUser(userObj, { numToken: tokenRemaining });
         try {
-          // Extract and process zip file
-          const zip = new AdmZip(req.file.buffer);
-          const zipEntries = zip.getEntries();
-          const datasetID = datasetData.id;
-          const numEntries = zipEntries.length;
-
-          // Update token usage for uploading the zip file
-          const tokenRemaining = updateToken('uploadZip', userObj!, numEntries);
-          if (tokenRemaining < 0 || !userObj) {
-            return res.status(401).send('Not authorized');
-          }
-      
-          await userApp.updateUser(userObj, { numToken: tokenRemaining });
-
-          // Iterate through zip entries and add valid .png files as spectrograms
           for (const zipEntry of zipEntries) {
             let filename = zipEntry.entryName;
             const basename = path.basename(filename);
 
-            // Process only .png files that are not in the __MACOSX directory
             if (zipEntry.entryName.endsWith('.png') && !zipEntry.entryName.startsWith('__MACOSX/')) {
               const bufferData = zipEntry.getData();
               const newSpectrogram: SpectrogramCreationAttributes = {
@@ -133,15 +120,13 @@ export const spectrogramController = {
             }
           }
 
-          return res.status(201).json({ message: 'Spectrograms successfully uploaded' });
+          return res.status(201).json({ status: 'Spectrograms successfully uploaded', statusCode: 201 });
         } catch (error) {
-          console.error('Error reading file:', error);
-          return res.status(500).json({ error: 'Error reading file' });
+          throw ErrorFactory.createError(ErrorType.InternalServerError, 'Error reading file .zip');
         }
       }
     } catch (error) {
-      console.error('Error adding spectrogram:', error);
-      return res.status(500).json({ error: 'Internal Server Error' });
+      next(error);
     }
   },
 };

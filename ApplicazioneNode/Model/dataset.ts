@@ -1,6 +1,7 @@
 import { Model, DataTypes, Optional } from 'sequelize';
 import db from '../Config/db_config'; // Assuming this is your Sequelize instance
 import Spectrogram from './spectrogram'; // Importing Spectrogram model
+import ErrorFactory, { ErrorType } from '../Errors/errorFactory';
 
 // Define the attributes for Dataset
 interface DatasetAttributes {

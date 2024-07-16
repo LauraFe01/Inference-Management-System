@@ -12,8 +12,9 @@ const inferenceWorker = new Worker('inferenceQueue', async job=>{
 
     console.log('Response from Flask server:', response.data);
     const dataresponse = response.data
+    console.log(dataresponse)
 
-    return JSON.stringify({ results: dataresponse });
+    return dataresponse;
     
   } catch (error) {
     console.error('Error processing inference job:', error);
