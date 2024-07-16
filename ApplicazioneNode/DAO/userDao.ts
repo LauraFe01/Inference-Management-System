@@ -1,6 +1,7 @@
 import { Dao } from './dao';
 import { User, UserCreationAttributes } from '../Model/user';
 import { UniqueConstraintError } from 'sequelize';
+import { Transaction } from 'sequelize';
 
 class UserDaoImpl implements Dao<User> {
     async get(id: number): Promise<User | null> {
@@ -22,13 +23,13 @@ class UserDaoImpl implements Dao<User> {
       }
     }
   
-    async update(user: User, ...params: any[]): Promise<void> {
+    async update(user: User, transaction?: Transaction, ...params: any[]): Promise<void> {
       const [updateValues] = params;
       try {
-        await user.update(updateValues);
+        await user.update(updateValues, { transaction });
       } catch (error) {
         if (error instanceof UniqueConstraintError) {
-          throw new Error('ID or email already exists'); //manda l'errore corrispondente nel caso di valore non unico
+          throw new Error('ID or email already exists');
         }
         throw error;
       }
@@ -72,8 +73,8 @@ class UserDAOApplication {
     return await this.userDao.save(userAttributes);
   }
 
-  async updateUser(user: User, updateValues: Partial<User>): Promise<void> {
-    return await this.userDao.update(user, updateValues);
+  async updateUser(user: User, updateValues: Partial<User>, transaction?: Transaction): Promise<void> {
+    return await this.userDao.update(user, transaction, updateValues);
   }
 
   async deleteUser(user: User): Promise<void> {

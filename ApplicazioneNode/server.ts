@@ -6,6 +6,7 @@ import userRoutes from './Routes/userRoutes';
 import spectrogramRoutes from './Routes/spectrogramRoutes';
 import * as dotenv from 'dotenv';
 import errorHandler from './Errors/errorHandler';
+import { checkValidJson } from './middleware';
 dotenv.config();
 
 const app = express();
@@ -13,6 +14,7 @@ const port = Number(process.env.SERVER_PORT);
 
 
 app.use(bodyParser.json());
+app.use(checkValidJson)
 
 app.use(datasetRoutes);
 app.use(userRoutes);

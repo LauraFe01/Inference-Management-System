@@ -11,6 +11,7 @@ import '../Worker/inferenceWorker'; // Assuming this imports a worker for infere
 import { QueueEvents } from 'bullmq';
 import { redisOptions } from '../Config/redis_config';
 import ErrorFactory, { ErrorType } from '../Errors/errorFactory';
+import db from '../Config/db_config';
 
 const datasetApp = new DatasetDAOApplication();
 const userApp = new UserDAOApplication();
@@ -51,7 +52,6 @@ export const datasetController = {
     }
   },
 
-  // Endpoint to cancel a dataset by name
   cancelDataset: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const datasetName = req.params.name;
@@ -119,6 +119,7 @@ export const datasetController = {
 
       const datasetName = req.params.datasetName;
       const userData = getDecodedToken(req);
+      const result = await db.transaction(async (transaction) => {
 
       if (!userData) {
         throw ErrorFactory.createError(ErrorType.NotFoundError, 'User not found');
@@ -144,30 +145,19 @@ export const datasetController = {
             const job = await inferenceQueue.add('Perform Inference', { modelId, spectrograms });
             const jobId = job.id;
 
-            // Listen for completion and failure events from queue
-            queueEvents.on('completed', ({ jobId: completedJobId }) => {
-              if (completedJobId === jobId) {
-                res.status(201).json({ status: 'The inference is completed!', statusCode: 201 });
-              }
-            });
-            queueEvents.on('failed', ({ jobId: failedJobId, failedReason }) => {
-              if (failedJobId === jobId) {
-                res.status(500).json({ error: 'Failed inference', reason: failedReason });
-              }
-            });
-
             res.json({ message: 'Inference added to the queue with id:', jobId });
           } catch (error) {
             console.error('Error during the request to Flask:', error);
-            throw ErrorFactory.createError(ErrorType.InternalServerError, 'Internal server error');
+            throw ErrorFactory.createError(ErrorType.InternalServerError, 'Error during the request to Flask');
           }
 
-          await userApp.updateUser(userObj, updateValues); // Update user tokens
+          await userApp.updateUser(userObj, updateValues, transaction); // Update user tokens
         } else {
           const job = await inferenceQueue.add('Aborted', { reason: 'Insufficient tokens' });
           res.status(401).json({ status: 'Aborted', error: 'Insufficient tokens. Aborted.', jobId: job.id });
         }
       }
+    });
     } catch (error) {
       next(error);
     }

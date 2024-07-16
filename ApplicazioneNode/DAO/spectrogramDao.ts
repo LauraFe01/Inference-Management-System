@@ -1,7 +1,7 @@
 import { Dao } from './dao';
 import Spectrogram from '../Model/spectrogram';
 import { SpectrogramCreationAttributes } from '../Model/spectrogram';
-import { UniqueConstraintError } from 'sequelize';
+import { Transaction, UniqueConstraintError } from 'sequelize';
 
 // Implementazione della classe SpectrogramDaoImpl che aderisce all'interfaccia Dao per il modello Spectrogram
 class SpectrogramDaoImpl implements Dao<Spectrogram> {
@@ -27,9 +27,9 @@ class SpectrogramDaoImpl implements Dao<Spectrogram> {
    * @param spectrogramAttributes - Gli attributi necessari per creare un nuovo Spectrogram.
    * @returns Una Promise che si risolve quando il Spectrogram è stato salvato.
    */
-  async save(spectrogramAttributes: SpectrogramCreationAttributes): Promise<void> {
+  async save(spectrogramAttributes: SpectrogramCreationAttributes, transaction?: Transaction): Promise<void> {
     try {
-      await Spectrogram.create(spectrogramAttributes);
+      await Spectrogram.create(spectrogramAttributes, { transaction });
     } catch (error) {
       if (error instanceof UniqueConstraintError) {
         throw new Error('ID already exists');
@@ -102,7 +102,7 @@ class SpectrogramDAOApplication {
    * @param spectrogramAttributes - Gli attributi necessari per creare un nuovo Spectrogram.
    * @returns Una Promise che si risolve quando il Spectrogram è stato salvato.
    */
-  async addSpectrogram(spectrogramAttributes: SpectrogramCreationAttributes): Promise<void> {
+  async addSpectrogram(spectrogramAttributes: SpectrogramCreationAttributes, transaction?: Transaction): Promise<void> {
     return await this.spectrogramDao.save(spectrogramAttributes);
   }
 

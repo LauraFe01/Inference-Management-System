@@ -10,6 +10,7 @@ import SpectrogramDAOApplication from '../DAO/spectrogramDao';
 import AdmZip from 'adm-zip';
 import fs from 'fs/promises';
 import ErrorFactory, { ErrorType } from '../Errors/errorFactory';
+import db from '../Config/db_config';
 
 
 const userApp = new UserDAOApplication();
@@ -20,48 +21,54 @@ export const spectrogramController = {
 
   addSpectrogram: async (req: Request, res: Response, next: NextFunction) => {
     try {
-
       const { datasetName } = req.body;
-
-      if (!req.file  || !datasetName) {
+      const result = await db.transaction(async (transaction) => {
+  
+      if (!req.file || !datasetName) {
         throw ErrorFactory.createError(ErrorType.MissingParameterError, 'Missing required fields (file, datasetName) in the body');
       } else if (!req.file.originalname.endsWith('.png')) {
         throw ErrorFactory.createError(ErrorType.UnsupportedMediaType, 'Unsupported file format. Expected .png');
       }
-
+  
       const pathName = req.file.originalname;
       const fileName = path.basename(pathName);
-
+  
       const userData = getDecodedToken(req);
       if (!userData) {
         throw ErrorFactory.createError(ErrorType.NotFoundError, 'User logged not found');
       }
-
+  
       if (typeof userData !== 'string') {
         const userId = userData.id;
-        const userObj = await userApp.getUser(userId);
-
-        const tokenRemaining = updateToken('uploadImage', userObj!, 1);
-        if (tokenRemaining < 0 || !userObj) {
-          throw ErrorFactory.createError(ErrorType.TokenError);
-        }
-
-        await userApp.updateUser(userObj, { numToken: tokenRemaining });
-
-        const datasetData = await datasetApp.getByName(datasetName, userId);
-        if (!datasetData || datasetData.userId !== userId) {
-          throw ErrorFactory.createError(ErrorType.UnauthorizedError, 'User cannot access to this dataset');
-        }
-
-        const newSpectrogram = {
-          name: fileName,
-          data: req.file.buffer,
-          datasetId: datasetData.id,
-        };
-
-        await spectrogramDao.addSpectrogram(newSpectrogram);
-        return res.status(201).json({status: 'spectrogram added', statusCode: 201, newSpectrogram});
+  
+        
+          const userObj = await userApp.getUser(userId);
+  
+          const tokenRemaining = updateToken('uploadImage', userObj!, 1);
+          console.log("token",tokenRemaining)
+          if (tokenRemaining < 0 || !userObj) {
+            throw ErrorFactory.createError(ErrorType.TokenError);
+          }
+  
+          await userApp.updateUser(userObj, { numToken: tokenRemaining }, transaction);
+  
+          const datasetData = await datasetApp.getByName(datasetName, userId);
+          if (!datasetData || datasetData.userId !== userId) {
+            throw ErrorFactory.createError(ErrorType.UnauthorizedError, 'User cannot access to this dataset');
+          }
+  
+          const newSpectrogram = {
+            name: fileName,
+            data: req.file.buffer,
+            datasetId: datasetData.id,
+          };
+  
+          await spectrogramDao.addSpectrogram(newSpectrogram, transaction);
+  
+        return res.status(201).json({ status: 'spectrogram added', statusCode: 201, newSpectrogram: newSpectrogram });
       }
+    });
+
     } catch (error) {
       next(error);
     }
@@ -70,6 +77,7 @@ export const spectrogramController = {
   uploadFile: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { datasetName } = req.body;
+      const result = await db.transaction(async (transaction) => {
 
       if (!req.file || !datasetName) {
         throw ErrorFactory.createError(ErrorType.MissingParameterError, 'Missing required fields (file, datasetName)');
@@ -97,13 +105,12 @@ export const spectrogramController = {
         const numEntries = zipEntries.length;
 
         const tokenRemaining = updateToken('uploadZip', userObj!, numEntries);
-        console.log('herre', tokenRemaining)
+
         if (tokenRemaining < 0 || !userObj) {
-          console.log('11111')
           throw ErrorFactory.createError(ErrorType.TokenError);
         }
 
-        await userApp.updateUser(userObj, { numToken: tokenRemaining });
+        await userApp.updateUser(userObj, { numToken: tokenRemaining }, transaction);
         try {
           for (const zipEntry of zipEntries) {
             let filename = zipEntry.entryName;
@@ -116,7 +123,8 @@ export const spectrogramController = {
                 data: bufferData,
                 datasetId: datasetID,
               };
-              await spectrogramDao.addSpectrogram(newSpectrogram);
+              await spectrogramDao.addSpectrogram(newSpectrogram, transaction);
+
             }
           }
 
@@ -125,6 +133,7 @@ export const spectrogramController = {
           throw ErrorFactory.createError(ErrorType.InternalServerError, 'Error reading file .zip');
         }
       }
+    });
     } catch (error) {
       next(error);
     }

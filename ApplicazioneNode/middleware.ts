@@ -56,4 +56,11 @@ function isAdminMiddleware(req: Request, res: Response, next: NextFunction) {
   next();
 }
 
-export { authMiddleware, isAdminMiddleware};
+function checkValidJson(err: any, req: Request, res: Response, next: NextFunction) {
+    if (err instanceof SyntaxError && 'body' in err) {
+      throw ErrorFactory.createError(ErrorType.ValidationError, 'Invalid JSON format in body');
+    }
+    next();
+};
+
+export { authMiddleware, isAdminMiddleware, checkValidJson};
