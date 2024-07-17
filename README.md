@@ -8,10 +8,16 @@ a condizione che dispongano di un numero sufficiente di token. Quando uno degli 
 
 ## Progettazione Database
 Il server trova appoggio in un database PostgreSQL, impostato su un server esterno. Le credenziali di accesso, come nome del database, utente, password ed hosto, sono salvate come variabuli di ambiente.
+il batabase è formato da tre entità: datasets, spectrograms e Utente, ciascuno con i propri attributi.
 Di seguito riportiamo il diagramma relazionale utilizato per la progettazione del database:
 
-![Diagramma relazionale]()
+<p align="center">
+    <img src="./diagrammi/DiagrammaRelazionale.drawio.png" alt="Diagramma del Sistema">
+</p>
+
 ## Diagrammi dei Casi D'Uso
+Utilizziamo i diagrammi dei casi d'uso per poter identificare in maniera chiara gli attori che interagiscono con il sistema e descrivere tale interazioni; inoltre, essi ci forniscono una panoramica chiara delle funzionalità del sistema stesso.
+
 
 ## Diagrammi delle Sequenze
 
