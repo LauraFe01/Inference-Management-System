@@ -18,8 +18,82 @@ Di seguito riportiamo il diagramma relazionale utilizato per la progettazione de
 ## Diagrammi dei Casi D'Uso
 Utilizziamo i diagrammi dei casi d'uso per poter identificare in maniera chiara gli attori che interagiscono con il sistema e descrivere tale interazioni; inoltre, essi ci forniscono una panoramica chiara delle funzionalità del sistema stesso.
 
+### Attori
+Gli attori sono le entità che interagiscono con il nostro sistema. In particolare ne sono state individuate 3 tipologie: Utente, Admin e Sistema
+<p align="center">
+    <img src="./diagrammi/casiDusoAttori.png" alt="Diagramma del Sistema">
+</p>
+
+### Gestione Utenti
+Tale diagramma riporta le azioni offerte dal sistema agli attori
+<p align="center">
+    <img src="./diagrammi/casiDusoUserManagement.png" alt="Diagramma del Sistema">
+</p>
+
+### Gestione Datasets
+Tale diagramma riporta le azioni offerte dal sistema sui datasets
+<p align="center">
+    <img src="./diagrammi/casiDusoDatasetManagement.png" alt="Diagramma del Sistema">
+</p>
 
 ## Diagrammi delle Sequenze
+I diagrammi di sequenza sono usati per descrivere l'interazone seuqenziale tra le varie entità all'interno del sistema durante l'esecuzione di una rotta. Di seguito andiamo a riportare dei diagrammi che descrivono il funzionamento delle 11 rotte elaborate
+
+### Creazione di un dataset vuoto
+<p align="center">
+    <img src="./diagrammi/creazionedataset.png" alt="Diagramma del Sistema">
+</p>
+
+### Cancellazione di un dataset
+<p align="center">
+    <img src="./diagrammi/cancellazioneDataset.png" alt="Diagramma del Sistema">
+</p>
+
+### Modifica di un dataset
+<p align="center">
+    <img src="./diagrammi/aggiornamentoDataset.png" alt="Diagramma del Sistema">
+</p>
+
+### Inferenza su un dataset
+<p align="center">
+    <img src="./diagrammi/inferenza.png" alt="Diagramma del Sistema">
+</p>
+
+### Elenco dei dataset dell'utente loggato
+<p align="center">
+    <img src="./diagrammi/ottieniListaDataset.png" alt="Diagramma del Sistema">
+</p>
+
+### Stato di avanzamento dell'inferenza
+<p align="center">
+    <img src="./diagrammi/inferenceStatus.png" alt="Diagramma del Sistema">
+</p>
+
+### Login
+<p align="center">
+    <img src="./diagrammi/login.png" alt="Diagramma del Sistema">
+</p>
+
+### Controllo dei token residui
+<p align="center">
+    <img src="./diagrammi/creditoUtente.png" alt="Diagramma del Sistema">
+</p>
+
+### Aggiunta di token ad un utente
+<p align="center">
+    <img src="./diagrammi/refillToken.png" alt="Diagramma del Sistema">
+</p>
+
+### Aggiunta di un nuovo spettrogramma
+<p align="center">
+    <img src="./diagrammi/inserimentoSpettrogrammaInDataset.png" alt="Diagramma del Sistema">
+</p>
+
+### Aggiunta di una cartella zip
+<p align="center">
+    <img src="./diagrammi/caricamentoFileZipInDataser.png" alt="Diagramma del Sistema">
+</p>
+
 
 ## Design Pattern Utilizzati
-Descrizione dei design pattern utilizzati nel progetto.
+
