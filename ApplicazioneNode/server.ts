@@ -7,11 +7,14 @@ import spectrogramRoutes from './Routes/spectrogramRoutes';
 import * as dotenv from 'dotenv';
 import errorHandler from './Errors/errorHandler';
 import { checkValidJson } from './middleware';
+import seed from './Seeders/userSeed';
 dotenv.config();
 
 const app = express();
 const port = Number(process.env.SERVER_PORT);
 
+
+//seed()
 
 app.use(bodyParser.json());
 app.use(checkValidJson)

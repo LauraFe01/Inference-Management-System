@@ -8,12 +8,12 @@ interface DatasetAttributes {
   id: number;
   name: string;
   description: string;
-  isCancelled: boolean;
   userId: number;
+  deletedAt: Date;
 }
 
 // Define the attributes for Dataset that can be optionally provided when creating
-interface DatasetCreationAttributes extends Optional<DatasetAttributes, 'id' | 'isCancelled'> {}
+interface DatasetCreationAttributes extends Optional<DatasetAttributes, 'id' | 'deletedAt' > {}
 
 // Define the Dataset model class
 class Dataset extends Model<DatasetAttributes, DatasetCreationAttributes> implements DatasetAttributes {
@@ -21,8 +21,7 @@ class Dataset extends Model<DatasetAttributes, DatasetCreationAttributes> implem
   public name!: string;
   public description!: string;
   public userId!: number;
-  public isCancelled!: boolean;
-
+  public readonly deletedAt!: Date;
   // timestamps
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
@@ -49,14 +48,15 @@ Dataset.init(
       type: DataTypes.INTEGER,
       allowNull: false
     },
-    isCancelled: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-      allowNull: false
+    deletedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      defaultValue: null
     }
   },
   {
     sequelize: db, // Sequelize instance
+    paranoid: true,
     modelName: 'Dataset', // Model name in Sequelize
     tableName: 'datasets', // Table name in the database
     timestamps: true, // Enable timestamps

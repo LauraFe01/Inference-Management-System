@@ -67,7 +67,7 @@ export const datasetController = {
         if (!dataset) {
           throw ErrorFactory.createError(ErrorType.NotFoundError, 'Dataset not found');
         }
-        await datasetApp.updateDataset(dataset, { isCancelled: true });
+        await datasetApp.deleteDataset(dataset);
         res.status(200).json({ message: 'Dataset cancelled successfully', statusCode: 200});
       }
     } catch (error) {

@@ -12,7 +12,7 @@ class DatasetDaoImpl implements Dao<Dataset> {
    * @returns Una Promise che risolve con il Dataset trovato o null se non trovato.
    */
   async get(id: number): Promise<Dataset | null> {
-    return await Dataset.findOne({ where: {id:id, isCancelled: false } });
+    return await Dataset.findOne({ where: {id:id} });
   }
 
   /**
@@ -20,7 +20,7 @@ class DatasetDaoImpl implements Dao<Dataset> {
    * @returns Una Promise che risolve con un array di Dataset.
    */
   async getAll(): Promise<Dataset[]> {
-    return await Dataset.findAll({ where: {isCancelled: false } });
+    return await Dataset.findAll();
   }
 
   /**
@@ -93,7 +93,7 @@ class DatasetDaoImpl implements Dao<Dataset> {
   }
 
   async getAllDatasetsByUser(userID: string):Promise<Dataset[]>{
-      return await Dataset.findAll({ where: { userId: userID, isCancelled: false } }); 
+      return await Dataset.findAll({ where: { userId: userID} }); 
   }
 
   async getByName(dbName: string, userId: number): Promise<Dataset | null> {
@@ -101,8 +101,7 @@ class DatasetDaoImpl implements Dao<Dataset> {
     const existingDataset = await Dataset.findOne({
       where: {
         name: dbName,
-        userId: userId,
-        isCancelled: false
+        userId: userId
       }});
     return existingDataset
   }
