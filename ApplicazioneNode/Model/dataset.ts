@@ -1,25 +1,26 @@
 import { Model, DataTypes, Optional } from 'sequelize';
 import db from '../Config/db_config'; // Assuming this is your Sequelize instance
 import Spectrogram from './spectrogram'; // Importing Spectrogram model
-import ErrorFactory, { ErrorType } from '../Errors/errorFactory';
 
 // Define the attributes for Dataset
 interface DatasetAttributes {
   id: number;
   name: string;
   description: string;
+  tags: string[];
   userId: number;
   deletedAt: Date;
 }
 
 // Define the attributes for Dataset that can be optionally provided when creating
-interface DatasetCreationAttributes extends Optional<DatasetAttributes, 'id' | 'deletedAt' > {}
+interface DatasetCreationAttributes extends Optional<DatasetAttributes, 'id' | 'deletedAt' | 'tags' > {}
 
 // Define the Dataset model class
 class Dataset extends Model<DatasetAttributes, DatasetCreationAttributes> implements DatasetAttributes {
   public id!: number;
   public name!: string;
   public description!: string;
+  public tags!: string[];
   public userId!: number;
   public readonly deletedAt!: Date;
   // timestamps
@@ -47,6 +48,11 @@ Dataset.init(
     userId: {
       type: DataTypes.INTEGER,
       allowNull: false
+    },
+    tags: {
+      type: DataTypes.JSON,
+      allowNull: false,
+      defaultValue: [],
     },
     deletedAt: {
       type: DataTypes.DATE,

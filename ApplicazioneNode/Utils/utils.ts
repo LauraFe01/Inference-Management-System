@@ -15,3 +15,14 @@ export function updateToken(type: string, user: User, numElem: number){
 
     return tokenRemaining
 }
+
+export function arraysEqual(arr1: any[], arr2: any[]): boolean {
+    if (arr1 === arr2) return true; // Same reference
+    if (arr1 == null || arr2 == null) return false; // One is null/undefined
+    if (arr1.length !== arr2.length) return false; // Different length
+  
+    for (let i = 0; i < arr1.length; ++i) {
+      if (arr1[i] !== arr2[i]) return false; // Different elements
+    }
+    return true;
+  }

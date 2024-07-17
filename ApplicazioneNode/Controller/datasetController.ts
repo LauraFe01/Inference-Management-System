@@ -26,12 +26,17 @@ export const datasetController = {
   // Endpoint to create an empty dataset
   createEmptyDataset: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { name, description } = req.body;
+      const { name, description, tags } = req.body;
       if (!name || !description) {
         throw ErrorFactory.createError(ErrorType.MissingParameterError, 'Missing required fields in body (name, description)');
       } else if (name.length === 0) {
         throw ErrorFactory.createError(ErrorType.ValidationError, 'Not valid name!');
       }
+
+      if (tags && (!Array.isArray(tags) )) {
+        throw ErrorFactory.createError(ErrorType.ValidationError, 'Tags must be an array of strings');
+      }
+
       const userData = getDecodedToken(req);
       if (!userData) {
         throw ErrorFactory.createError(ErrorType.NotFoundError, 'User not found');
@@ -42,6 +47,7 @@ export const datasetController = {
             name,
             description,
             userId,
+            tags: tags || [],
           };
           await datasetApp.addDataset(newDataset);
           res.status(201).send({status: 'Empty Dataset added', statusCode: 201, newDataset}); // Send success response with created dataset

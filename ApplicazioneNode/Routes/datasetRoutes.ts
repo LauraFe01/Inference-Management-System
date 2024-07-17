@@ -8,7 +8,7 @@ router.post('/emptydataset', authMiddleware, datasetController.createEmptyDatase
 router.put('/dataset/:name/cancel', authMiddleware, datasetController.cancelDataset);
 router.patch('/dataset/:name/update', authMiddleware, datasetController.updateDataset);
 router.post('/startInference/:datasetName', authMiddleware, datasetController.startInference);
-router.get('/allDatasets', authMiddleware, datasetController.getAllDatasets);
+router.get('/datasets', authMiddleware, datasetController.getAllDatasets);
 router.get('/inferenceStatus/:jobId', authMiddleware, datasetController.getInferenceStatus);
 
 export default router;

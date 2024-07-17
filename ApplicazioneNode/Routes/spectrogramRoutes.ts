@@ -7,7 +7,7 @@ const router = express.Router();
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-router.post('/newspectrogram',authMiddleware, upload.single('file'), spectrogramController.addSpectrogram);
-router.post('/uploadfilesfromzip', authMiddleware, upload.single('file'), spectrogramController.uploadFile);
+router.post('/spectrogram',authMiddleware, upload.single('file'), spectrogramController.addSpectrogram);
+router.post('/uploadFilesFromZip', authMiddleware, upload.single('file'), spectrogramController.uploadFile);
 
 export default router;

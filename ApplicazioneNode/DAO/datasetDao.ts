@@ -3,6 +3,7 @@ import Dataset from '../Model/dataset';
 import { DatasetCreationAttributes } from '../Model/dataset';
 import { UniqueConstraintError } from 'sequelize';
 import ErrorFactory, { ErrorType } from '../Errors/errorFactory';
+import { arraysEqual } from '../Utils/utils';
 
 // Implementazione della classe DatasetDaoImpl che aderisce all'interfaccia Dao per il modello Dataset
 class DatasetDaoImpl implements Dao<Dataset> {
@@ -75,7 +76,7 @@ class DatasetDaoImpl implements Dao<Dataset> {
         throw ErrorFactory.createError(ErrorType.ValidationError, `Dataset name ${existingDataset.name} not valid, user already has a dataset with this name`);
       }
 
-      if (existingDataset && existingDataset.name == updateValues.name && existingDataset.description == updateValues.description){
+      if (existingDataset && existingDataset.name == updateValues.name && existingDataset.description == updateValues.description && arraysEqual(existingDataset.tags, updateValues.tags)){
         throw ErrorFactory.createError(ErrorType.ValidationError, 'Nothing to update!');
       }
     }
