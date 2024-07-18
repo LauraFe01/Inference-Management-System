@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { CustomError } from './customErrors';
+import multer from 'multer';
 
 function errorHandler(err: Error, req: Request, res: Response, next: NextFunction): void {
   if (err instanceof CustomError) {

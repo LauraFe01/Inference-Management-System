@@ -5,7 +5,7 @@ import DatasetDAOApplication from '../DAO/datasetDao';
 import UserDAOApplication from '../DAO/userDao';
 import SpectrogramDAOApplication from '../DAO/spectrogramDao';
 import { updateToken } from '../Utils/utils';
-import { User } from '../Model/init_database';
+import { User } from '../init_database';
 import { inferenceQueue } from '../Config/inferenceQueue_config';
 import '../Worker/inferenceWorker'; // Assuming this imports a worker for inference processing
 import { QueueEvents } from 'bullmq';
@@ -100,6 +100,7 @@ export const datasetController = {
         if (typeof userData !== 'string') {
           const id = userData.id;
           const dataset = await datasetApp.getByName(datasetName, id);
+          console.log(datasetName, id)
           if (!dataset) {
             throw ErrorFactory.createError(ErrorType.NotFoundError, 'Dataset not found');
           }
@@ -141,6 +142,7 @@ export const datasetController = {
         }
 
         const spectrograms = await spectrogramDao.getAllSpectrogramsByDataset(dataset.id);
+        console.log(spectrograms)
         const numSpectrograms = spectrograms.length;
         const tokenRemaining = updateToken("inference", userObj!, numSpectrograms);
 

@@ -1,4 +1,4 @@
-import { NotFoundError, ValidationError, TokenError, UnauthorizedError, UnsupportedMediaType, MissingParameterError, InternalServerError, FieldsNotUpdatable } from './customErrors';
+import { NotFoundError, ValidationError, TokenError, UnauthorizedError, UnsupportedMediaType, MissingParameterError, InternalServerError, FieldsNotUpdatable, MultiFilesError } from './customErrors';
 
 export enum ErrorType {
     NotFoundError = 'NotFoundError',
@@ -8,7 +8,8 @@ export enum ErrorType {
     UnsupportedMediaType = 'UnsupportedMediaType',
     MissingParameterError = 'MissingParameterError',
     InternalServerError = 'InternalServerError',
-    FieldsNotUpdatable = 'FieldsNotUpdatable'
+    FieldsNotUpdatable = 'FieldsNotUpdatable',
+    MultiFilesError = 'MultiFilesError'
   }
   
   class ErrorFactory {
@@ -29,7 +30,9 @@ export enum ErrorType {
         case ErrorType.InternalServerError:
             return new InternalServerError(message);
         case ErrorType.FieldsNotUpdatable:
-            return new FieldsNotUpdatable(message)
+            return new FieldsNotUpdatable(message);
+        case ErrorType.MultiFilesError:
+            return new MultiFilesError(message);
         default:
           throw new Error(`Unknown error type: ${type}`);
       }

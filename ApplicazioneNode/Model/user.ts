@@ -25,7 +25,7 @@ class User extends Model<UserAttributes, UserCreationAttributes> implements User
   public isAdmin!: boolean; // Indica se l'utente è amministratore
 
   // Campi gestiti automaticamente da Sequelize
-  public readonly id!: number;
+  public id!: number;
   public readonly createdAt!: Date; 
   public readonly updatedAt!: Date;
 }

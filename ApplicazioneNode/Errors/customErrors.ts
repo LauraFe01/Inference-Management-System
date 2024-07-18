@@ -57,4 +57,10 @@ export class CustomError extends Error {
       super(message, 403)
     }
   }
+
+  export class MultiFilesError extends CustomError{
+    constructor(message = 'only one file at a time can be uploaded!'){
+      super(message, 403)
+    }
+  }
   

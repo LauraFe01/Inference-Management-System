@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import path from 'path';
 import { getDecodedToken } from '../Utils/token_utils';
 import { updateToken } from '../Utils/utils';
-import { User } from '../Model/init_database';
+import { User } from '../init_database';
 import UserDAOApplication from '../DAO/userDao';
 import { SpectrogramCreationAttributes } from '../Model/spectrogram';
 import DatasetDAOApplication from '../DAO/datasetDao';

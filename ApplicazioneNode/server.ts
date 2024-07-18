@@ -1,6 +1,6 @@
 import express from 'express';
 import bodyParser from 'body-parser';
-import { initModels } from './Model/init_database';
+import { initModels } from './init_database';
 import datasetRoutes from './Routes/datasetRoutes';
 import userRoutes from './Routes/userRoutes';
 import spectrogramRoutes from './Routes/spectrogramRoutes';

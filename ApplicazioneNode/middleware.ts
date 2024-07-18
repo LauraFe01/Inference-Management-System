@@ -5,6 +5,7 @@ import { Request, Response, NextFunction } from 'express';
 import { getDecodedToken } from './Utils/token_utils';
 import JWT_config from './Config/JWT_config';
 import ErrorFactory, { ErrorType } from './Errors/errorFactory';
+import { MulterError } from 'multer';
 
 // const middlewareProva = require('./middlewareProva')
 // const auth = require('./auth')
@@ -63,4 +64,14 @@ function checkValidJson(err: any, req: Request, res: Response, next: NextFunctio
     next();
 };
 
-export { authMiddleware, isAdminMiddleware, checkValidJson};
+function singleFileCheck(err: any, req: Request, res: Response, next: NextFunction) {
+  if (err instanceof MulterError) {
+    if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+      throw ErrorFactory.createError(ErrorType.MultiFilesError);
+    }
+  }
+  next();
+}
+
+
+export { authMiddleware, isAdminMiddleware, checkValidJson, singleFileCheck};

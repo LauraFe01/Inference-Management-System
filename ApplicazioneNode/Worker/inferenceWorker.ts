@@ -20,7 +20,13 @@ const inferenceWorker = new Worker('inferenceQueue', async job=>{
     console.error('Error processing inference job:', error);
   }
 },{
-  connection: redisOptions as ConnectionOptions
+  connection: redisOptions as ConnectionOptions,
+  removeOnComplete: {
+    count: 20, 
+  },
+  removeOnFail: {
+   count: 20, 
+  }
 })
 
 export default inferenceWorker;
