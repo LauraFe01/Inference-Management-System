@@ -32,7 +32,7 @@ export function updateToken(type: string, user: User, numElem: number): number {
 export function arraysEqual(arr1: any[], arr2: any[]): boolean {
     if (arr1 === arr2) return true; // Same reference
 
-    if (arr2 === undefined) return true; // One array is undefined
+    if (arr2 === undefined) return true;
 
     if (arr1.length !== arr2.length) return false; // Different length
 
