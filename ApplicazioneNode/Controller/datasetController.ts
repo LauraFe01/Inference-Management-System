@@ -23,7 +23,6 @@ const queueEvents = new QueueEvents('Inference', {
   }});
 
 export const datasetController = {
-  // Endpoint to create an empty dataset
   createEmptyDataset: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { name, description, tags } = req.body;

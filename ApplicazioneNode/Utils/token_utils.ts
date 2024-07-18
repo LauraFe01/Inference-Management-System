@@ -1,20 +1,26 @@
-import { Request} from 'express';
+import { Request } from 'express';
 import jwt from 'jsonwebtoken';
 import JWT_config from '../Config/JWT_config';
 
-export function getDecodedToken(req: Request){
-    const authHeader = req.headers.authorization;
-    console.log(JSON.stringify(req.headers, null, 2));
-    if(authHeader){
-    const token = authHeader.split(' ')[1];
-    try {
-      const decodedToken= jwt.verify(token, JWT_config.jwtSecret);
-      console.log('token', JSON.stringify(decodedToken, null, 2))
-      return decodedToken
+/**
+ * Extracts and decodes JWT token from the Authorization header of the request.
+ * @param req - Express Request object containing headers with Authorization token.
+ * @returns Decoded token payload if token is valid; otherwise, undefined.
+ */
+export function getDecodedToken(req: Request) {
+  const authHeader = req.headers.authorization;
 
+  if (authHeader) {
+    // Extract token from Authorization header
+    const token = authHeader.split(' ')[1];
+
+    try {
+      // Verify and decode JWT token using configured secret
+      const decodedToken = jwt.verify(token, JWT_config.jwtSecret);
+
+      return decodedToken;
     } catch (error) {
-      console.error('Errore durante la verifica del token:', error);
+      console.error('Error verifying token:', error);
     }
-}
-  
+  }
 }

@@ -3,29 +3,33 @@ import Spectrogram from '../Model/spectrogram';
 import { SpectrogramCreationAttributes } from '../Model/spectrogram';
 import { Transaction, UniqueConstraintError } from 'sequelize';
 
-// Implementazione della classe SpectrogramDaoImpl che aderisce all'interfaccia Dao per il modello Spectrogram
+/**
+ * Implementation of SpectrogramDaoImpl class adhering to the Dao interface.
+ */
 class SpectrogramDaoImpl implements Dao<Spectrogram> {
   /**
-   * Recupera un Spectrogram dal database utilizzando il suo ID.
-   * @param id - L'ID del spectrogram da recuperare.
-   * @returns Una Promise che risolve con il Spectrogram trovato o null se non trovato.
+   * Retrieves a Spectrogram from the database using its ID.
+   * @param {number} id - The ID of the spectrogram to retrieve.
+   * @returns {Promise<Spectrogram | null>} A Promise that resolves with the found Spectrogram or null if not found.
    */
   async get(id: number): Promise<Spectrogram | null> {
     return await Spectrogram.findByPk(id);
   }
 
   /**
-   * Recupera tutti i Spectrogram dal database.
-   * @returns Una Promise che risolve con un array di Spectrogram.
+   * Retrieves all Spectrograms from the database.
+   * @returns {Promise<Spectrogram[]>} A Promise that resolves with an array of Spectrograms.
    */
   async getAll(): Promise<Spectrogram[]> {
     return await Spectrogram.findAll();
   }
 
   /**
-   * Salva un nuovo Spectrogram nel database.
-   * @param spectrogramAttributes - Gli attributi necessari per creare un nuovo Spectrogram.
-   * @returns Una Promise che si risolve quando il Spectrogram è stato salvato.
+   * Saves a new Spectrogram to the database.
+   * @param {SpectrogramCreationAttributes} spectrogramAttributes - The attributes needed to create a new Spectrogram.
+   * @param {Transaction} [transaction] - Optional transaction to perform the operation within a transaction context.
+   * @returns {Promise<void>} A Promise that resolves when the Spectrogram is saved.
+   * @throws Throws an error if the ID already exists (UniqueConstraintError).
    */
   async save(spectrogramAttributes: SpectrogramCreationAttributes, transaction?: Transaction): Promise<void> {
     try {
@@ -39,10 +43,11 @@ class SpectrogramDaoImpl implements Dao<Spectrogram> {
   }
 
   /**
-   * Aggiorna un Spectrogram esistente nel database.
-   * @param spectrogram - Il Spectrogram da aggiornare.
-   * @param params - Altri parametri necessari per l'aggiornamento, in questo caso gli updateValues.
-   * @returns Una Promise che si risolve quando il Spectrogram è stato aggiornato.
+   * Updates an existing Spectrogram in the database.
+   * @param {Spectrogram} spectrogram - The Spectrogram to update.
+   * @param {...any[]} params - Additional parameters needed for the update, in this case updateValues.
+   * @returns {Promise<void>} A Promise that resolves when the Spectrogram is updated.
+   * @throws Throws an error if the ID already exists (UniqueConstraintError).
    */
   async update(spectrogram: Spectrogram, ...params: any[]): Promise<void> {
     try {
@@ -57,79 +62,92 @@ class SpectrogramDaoImpl implements Dao<Spectrogram> {
   }
 
   /**
-   * Elimina un Spectrogram dal database.
-   * @param spectrogram - Il Spectrogram da eliminare.
-   * @returns Una Promise che si risolve quando il Spectrogram è stato eliminato.
+   * Deletes a Spectrogram from the database.
+   * @param {Spectrogram} spectrogram - The Spectrogram to delete.
+   * @returns {Promise<void>} A Promise that resolves when the Spectrogram is deleted.
    */
   async delete(spectrogram: Spectrogram): Promise<void> {
     await spectrogram.destroy();
   }
 
-  async getAllSpectrogramsByDataset(datasetId: number): Promise<Spectrogram[]>{
-    return await Spectrogram.findAll({ where: { datasetId: datasetId } }); 
+  /**
+   * Retrieves all Spectrograms associated with a specific Dataset ID from the database.
+   * @param {number} datasetId - The ID of the Dataset whose Spectrograms to retrieve.
+   * @returns {Promise<Spectrogram[]>} A Promise that resolves with an array of Spectrograms.
+   */
+  async getAllSpectrogramsByDataset(datasetId: number): Promise<Spectrogram[]> {
+    return await Spectrogram.findAll({ where: { datasetId: datasetId } });
   }
 }
 
-
-// Classe SpectrogramDAOApplication che utilizza SpectrogramDaoImpl per eseguire operazioni sui Spectrogram
+/**
+ * SpectrogramDAOApplication class that uses SpectrogramDaoImpl to perform Spectrogram operations.
+ */
 class SpectrogramDAOApplication {
   spectrogramDao: SpectrogramDaoImpl;
 
-  // Costruttore che inizializza un'istanza di SpectrogramDaoImpl
+  /**
+   * Constructor that initializes an instance of SpectrogramDaoImpl.
+   */
   constructor() {
     this.spectrogramDao = new SpectrogramDaoImpl();
   }
 
   /**
-   * Recupera un Spectrogram utilizzando il suo ID.
-   * @param id - L'ID del Spectrogram da recuperare.
-   * @returns Una Promise che risolve con il Spectrogram trovato o null se non trovato.
+   * Retrieves a Spectrogram by its ID.
+   * @param {number} id - The ID of the Spectrogram to retrieve.
+   * @returns {Promise<Spectrogram | null>} A Promise that resolves with the found Spectrogram or null if not found.
    */
   async getSpectrogram(id: number): Promise<Spectrogram | null> {
     return await this.spectrogramDao.get(id);
   }
 
   /**
-   * Recupera tutti i Spectrogram.
-   * @returns Una Promise che risolve con un array di Spectrogram.
+   * Retrieves all Spectrograms.
+   * @returns {Promise<Spectrogram[]>} A Promise that resolves with an array of Spectrograms.
    */
   async getAllSpectrograms(): Promise<Spectrogram[]> {
     return await this.spectrogramDao.getAll();
   }
 
   /**
-   * Aggiunge un nuovo Spectrogram.
-   * @param spectrogramAttributes - Gli attributi necessari per creare un nuovo Spectrogram.
-   * @returns Una Promise che si risolve quando il Spectrogram è stato salvato.
+   * Adds a new Spectrogram.
+   * @param {SpectrogramCreationAttributes} spectrogramAttributes - The attributes needed to create a new Spectrogram.
+   * @param {Transaction} [transaction] - Optional transaction to perform the operation within a transaction context.
+   * @returns {Promise<void>} A Promise that resolves when the Spectrogram is saved.
    */
   async addSpectrogram(spectrogramAttributes: SpectrogramCreationAttributes, transaction?: Transaction): Promise<void> {
-    return await this.spectrogramDao.save(spectrogramAttributes);
+    return await this.spectrogramDao.save(spectrogramAttributes, transaction);
   }
 
   /**
-   * Aggiorna un Spectrogram esistente.
-   * @param spectrogram - Il Spectrogram da aggiornare.
-   * @param updateValues - Gli attributi aggiornati del Spectrogram.
-   * @returns Una Promise che si risolve quando il Spectrogram è stato aggiornato.
+   * Updates an existing Spectrogram.
+   * @param {Spectrogram} spectrogram - The Spectrogram to update.
+   * @param {Partial<Spectrogram>} updateValues - The updated attributes of the Spectrogram.
+   * @returns {Promise<void>} A Promise that resolves when the Spectrogram is updated.
    */
   async updateSpectrogram(spectrogram: Spectrogram, updateValues: Partial<Spectrogram>): Promise<void> {
     return await this.spectrogramDao.update(spectrogram, updateValues);
   }
 
   /**
-   * Elimina un Spectrogram.
-   * @param spectrogram - Il Spectrogram da eliminare.
-   * @returns Una Promise che si risolve quando il Spectrogram è stato eliminato.
+   * Deletes a Spectrogram.
+   * @param {Spectrogram} spectrogram - The Spectrogram to delete.
+   * @returns {Promise<void>} A Promise that resolves when the Spectrogram is deleted.
    */
   async deleteSpectrogram(spectrogram: Spectrogram): Promise<void> {
     return await this.spectrogramDao.delete(spectrogram);
   }
 
+  /**
+   * Retrieves all Spectrograms associated with a specific Dataset ID.
+   * @param {number} datasetId - The ID of the Dataset whose Spectrograms to retrieve.
+   * @returns {Promise<Spectrogram[]>} A Promise that resolves with an array of Spectrograms.
+   */
   async getAllSpectrogramsByDataset(datasetId: number): Promise<Spectrogram[]> {
     return await this.spectrogramDao.getAllSpectrogramsByDataset(datasetId);
   }
-
 }
 
-// Esporta la classe SpectrogramDAOApplication come esportazione predefinita
+// Export the SpectrogramDAOApplication class as the default export
 export default SpectrogramDAOApplication;
