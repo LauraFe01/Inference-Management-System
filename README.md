@@ -7,7 +7,7 @@ Il backend realizzato permette agli utenti di autenticarsi, generare dataset e f
 a condizione che dispongano di un numero sufficiente di token. Quando uno degli utenti esaurisce i token a disposizione, può richiederne all'admin. Il tutto è gestito da un sistema di autenticazione JWT (JSON Web Token).
 
 ## Progettazione Database
-Il server trova appoggio in un database PostgreSQL, impostato su un server esterno. Le credenziali di accesso, come nome del database, utente, password ed hosto, sono salvate come variabuli di ambiente.
+Il server trova appoggio in un database PostgreSQL, impostato su un server esterno. Le credenziali di accesso, come nome del database, utente, password ed host, sono salvate come variabili di ambiente.
 il batabase è formato da tre entità: datasets, spectrograms e Utente, ciascuno con i propri attributi.
 Di seguito riportiamo il diagramma relazionale utilizato per la progettazione del database:
 
