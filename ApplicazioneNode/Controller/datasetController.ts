@@ -220,7 +220,19 @@ export const datasetController = {
         if (!datasets || datasets.length === 0) {
           throw ErrorFactory.createError(ErrorType.NotFoundError, 'User does not have any datasets yet');
         }
-        res.status(200).json(datasets);
+        let combinedJson = [{}];
+        for (let dataset of datasets) {
+          const spectrograms = await spectrogramDao.getAllSpectrogramsByDataset(dataset.id)
+          const spectrogramNames: string[] = spectrograms.map(s => s.name);
+          let datasetObject = {
+            dataset: dataset,
+            spectrograms: spectrogramNames
+          };
+
+          combinedJson.push(datasetObject);
+        }
+        
+        res.json(combinedJson);
       }
     } catch (error) {
       next(error);
