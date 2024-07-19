@@ -594,7 +594,7 @@ All'interno del body, come _form-data_, deve essere contenuto
 * `name`: nome del nuovo file
 * `data`: attributi specifici del file che è stato inserito
   * `type`: tipo di dato inserito
-  * `data`: (?)
+  * `data`: rappresentazione dell'immagine come Buffer
 * `datasetId`: codice identificativo del dataset in cui è stato aggiunto lo spettrogramma
 
 #### Esempio
