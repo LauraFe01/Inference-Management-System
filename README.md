@@ -285,7 +285,7 @@ All'interno dei _Path Variables_ si deve trovare
 
 ### Elenco dei dataset dell'utente loggato
 #### Rotta
-GET http://localhost:3000/allDatasets
+GET http://localhost:3000/datasets
 #### Descrizione
 ##### Authorization
 Per eseguire questa rotta è necessario che l'utente abbia effettuato l'accesso tramite JWT. 
@@ -300,57 +300,90 @@ Per eseguire questa rotta è necessario che l'utente abbia effettuato l'accesso 
 * `name`: nome del dataset
 * `description`: descrizione del dataset
 * `userId`: codice identificativo dell'utente che ha creato il dataset
+* `tags[]`: metadati associati al dataset
 * `deletedAt`: campo che indica la cancellazione logica del dataset
 * `createdAt`: data e ora di creazione del dataset
 * `updatedAt`: data e ora di modifica del dataset
+* `spectrograms[]`: lista dei file presenti all'interno del dataset
 #### Esempio
 ##### Risposta
 ```
 [
+    {},
     {
-        "id": 2,
-        "name": "dataset3",
-        "description": "Il mio dataset",
-        "userId": 1,
-        "deletedAt": null,
-        "createdAt": "2024-07-18T14:27:45.907Z",
-        "updatedAt": "2024-07-18T14:27:45.907Z"
+        "dataset": {
+            "id": 2,
+            "name": "dataset3",
+            "description": "Il mio dataset",
+            "userId": 1,
+            "tags": [
+                "primoDB",
+                "prova",
+                "test",
+                1
+            ],
+            "deletedAt": null,
+            "createdAt": "2024-07-18T14:27:45.907Z",
+            "updatedAt": "2024-07-18T14:27:45.907Z"
+        },
+        "spectrograms": [
+            "apnea167.png"
+        ]
     },
     {
-        "id": 3,
-        "name": "datasetProva1",
-        "description": "datset prova",
-        "userId": 1,
-        "deletedAt": null,
-        "createdAt": "2024-07-18T14:40:14.655Z",
-        "updatedAt": "2024-07-18T14:40:14.655Z"
+        "dataset": {
+            "id": 7,
+            "name": "dataset1",
+            "description": "Il mio dataset",
+            "userId": 1,
+            "tags": [
+                "primoDB",
+                "prova",
+                "test",
+                1
+            ],
+            "deletedAt": null,
+            "createdAt": "2024-07-18T14:58:16.629Z",
+            "updatedAt": "2024-07-18T14:58:16.629Z"
+        },
+        "spectrograms": [
+            "nonapnea0.png",
+            "nonapnea1.png",
+            "nonapnea10.png",
+            "nonapnea2.png",
+            "nonapnea3.png",
+            "nonapnea4.png",
+            "nonapnea5.png",
+            "nonapnea6.png",
+            "nonapnea7.png",
+            "nonapnea8.png",
+            "nonapnea9.png"
+        ]
     },
     {
-        "id": 4,
-        "name": "datasetProva2",
-        "description": "datset prova",
-        "userId": 1,
-        "deletedAt": null,
-        "createdAt": "2024-07-18T14:40:18.950Z",
-        "updatedAt": "2024-07-18T14:40:18.950Z"
-    },
-    {
-        "id": 5,
-        "name": "datasetProva3",
-        "description": "datset prova",
-        "userId": 1,
-        "deletedAt": null,
-        "createdAt": "2024-07-18T14:40:23.473Z",
-        "updatedAt": "2024-07-18T14:40:23.473Z"
-    },
-    {
-        "id": 6,
-        "name": "datasetProva4",
-        "description": "datset prova",
-        "userId": 1,
-        "deletedAt": null,
-        "createdAt": "2024-07-18T14:40:27.263Z",
-        "updatedAt": "2024-07-18T14:40:27.263Z"
+        "dataset": {
+            "id": 8,
+            "name": "datasetProva1",
+            "description": "datset prova",
+            "userId": 1,
+            "tags": [],
+            "deletedAt": null,
+            "createdAt": "2024-07-18T15:09:53.737Z",
+            "updatedAt": "2024-07-18T15:09:53.737Z"
+        },
+        "spectrograms": [
+            "apnea181.png",
+            "apnea107.png",
+            "apnea167.png",
+            "apnea174.png",
+            "apnea180.png",
+            "apnea181.png",
+            "apnea247.png",
+            "apnea259.png",
+            "apnea268.png",
+            "apnea285.png",
+            "apnea290.png"
+        ]
     }
 ]
 ```
