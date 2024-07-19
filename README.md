@@ -111,6 +111,7 @@ Durante lo sviuppo del sistema sono stati utilizzati diversi pattern per garanti
 1. **authMiddleware**: gestisce l'autenticazione delle richieste; in particolare, la presenza del JWT token e la sua validità.
 2. **isAdminMiddleware**: controlla se l'utente autenticato gode dei privilegi di amministratore.
 3. **checkValidJson**: gestisce la validazione del formato JSON dele richuieste in entrata.
+4. **singleFileCheck**: verifica se è stato caricato uno o più file. 
 
 **MVC** - l'MVC è un pattern architetturale la cui logica funzionamento si basa sulla suddivisione del sistema in tre componenti _Model_, _View_ e _Controller_.
 
@@ -137,10 +138,19 @@ Per eseguire questa rotta è necessario che l'utente abbia effettuato l'accesso 
 `Token`: _token JWT_
 ##### Parametri richiesta
 Nel body devono essere inseriti i seguenti parametri
+
 `name`: nome univoco fornito al nuovo dataset
+
 `description`: descrizione del dataset creato
 ##### Parametri risposta
+`status`: messaggio che indica lo stato in cui si trova la richiesta, ovvero se è andata a buon fine, se ci sono errori, ecc
 
+`statusCode`: codice standardizzato HTTP che specializza lo status della richiesta
+
+`newDataset`: indica le specifiche del nuovo dataset aggiunto; in particolare contiene:
+* `name`: nome del nuovo dataset
+* `description`: descrizione del nuovo dataset
+* `userId`: id dell'utente che ha creato il nuovo dataset
 #### Esempio
 ##### Body della richiesta
 ```
@@ -151,6 +161,15 @@ Nel body devono essere inseriti i seguenti parametri
 ```
 ##### Risposta
 ```
+{
+    "status": "Empty Dataset added",
+    "statusCode": 201,
+    "newDataset": {
+        "name": "datasetProva1",
+        "description": "datset prova",
+        "userId": 1
+    }
+}
 ```
 
 ### Cancellazione di un dataset
@@ -166,11 +185,20 @@ Per eseguire questa rotta è necessario che l'utente abbia effettuato l'accesso 
 ##### Parametri richiesta
 All'interno dei _Path Variables_ si deve trovare
 
-`datasetName`: nome del dataset da cancellare
+`name`: nome del dataset da cancellare
 ##### Parametri risposta
+
+`message`: messaggio che indica lo stato in cui si trova la richiesta, ovvero se è andata a buon fine, se ci sono errori, ecc
+
+`statusCode`: codice standardizzato HTTP che specializza lo status della richiesta
+
 #### Esempio
 ##### Risposta
 ```
+{
+    "message": "Dataset cancelled successfully",
+    "statusCode": 200
+}
 ```
 
 ### Modifica di un dataset
@@ -190,14 +218,41 @@ All'interno del body deve essere contenuto
 
 e all'interno dei _Path Variables_ si deve trovare
 
-`datasetName`: nome del dataset da modificare
+`name`: nome del dataset da modificare
 ##### Parametri risposta
+
+`status`: messaggio che indica lo stato in cui si trova la richiesta, ovvero se è andata a buon fine, se ci sono errori, ecc
+
+`statusCode`: codice standardizzato HTTP che specializza lo status della richiesta
+
+`newDataset`: indica le specifiche del nuovo dataset aggiunto; in particolare contiene:
+* `name`: nome del nuovo dataset
+* `description`: descrizione del nuovo dataset
+* `userId`: id dell'utente che ha creato il nuovo dataset
+  
 #### Esempio
+Supponiamo di voler cambiare il nome ad un dataset
 ##### Body della richiesta
 ```
+{
+    "name":"datasetCambiato"
+}
 ```
 ##### Risposta
 ```
+{
+    "status": "Dataset successfully updated!",
+    "statusCode": 200,
+    "dataset": {
+        "id": 1,
+        "name": "datasetCambiato",
+        "description": "datset prova",
+        "userId": 1,
+        "deletedAt": null,
+        "createdAt": "2024-07-18T14:24:43.356Z",
+        "updatedAt": "2024-07-18T14:37:12.885Z"
+    }
+}
 ```
 
 ### Inferenza su un dataset
@@ -215,14 +270,22 @@ All'interno dei _Path Variables_ si deve trovare
 
 `datasetName`: nome del dataset su cui fare inferenza
 ##### Parametri risposta
+
+`message`: messaggio che indica lo stato in cui si trova la richiesta, ovvero se è andata a buon fine, se ci sono errori, ecc
+
+`jobId`: id con cui l'inferenza è stata aggiunta alla coda e con la quale può essere richiamata
 #### Esempio
 ##### Risposta
 ```
+{
+    "message": "Inference added to the queue with id:",
+    "jobId": "27"
+}
 ```
 
 ### Elenco dei dataset dell'utente loggato
 #### Rotta
-GET http://localhost:3000/allDatasets
+GET http://localhost:3000/datasets
 #### Descrizione
 ##### Authorization
 Per eseguire questa rotta è necessario che l'utente abbia effettuato l'accesso tramite JWT. 
@@ -230,11 +293,99 @@ Per eseguire questa rotta è necessario che l'utente abbia effettuato l'accesso 
 `Auth Type`: Bearer Token.
 
 `Token`: _token JWT_
-##### Parametri richiesta
 ##### Parametri risposta
+
+`Datasets[]`: lista dei dataset, con i loro attributi, creati dall'utente loggato
+* `id`: codice identificativo del dataset
+* `name`: nome del dataset
+* `description`: descrizione del dataset
+* `userId`: codice identificativo dell'utente che ha creato il dataset
+* `tags[]`: metadati associati al dataset
+* `deletedAt`: campo che indica la cancellazione logica del dataset
+* `createdAt`: data e ora di creazione del dataset
+* `updatedAt`: data e ora di modifica del dataset
+* `spectrograms[]`: lista dei file presenti all'interno del dataset
 #### Esempio
 ##### Risposta
 ```
+[
+    {},
+    {
+        "dataset": {
+            "id": 2,
+            "name": "dataset3",
+            "description": "Il mio dataset",
+            "userId": 1,
+            "tags": [
+                "primoDB",
+                "prova",
+                "test",
+                1
+            ],
+            "deletedAt": null,
+            "createdAt": "2024-07-18T14:27:45.907Z",
+            "updatedAt": "2024-07-18T14:27:45.907Z"
+        },
+        "spectrograms": [
+            "apnea167.png"
+        ]
+    },
+    {
+        "dataset": {
+            "id": 7,
+            "name": "dataset1",
+            "description": "Il mio dataset",
+            "userId": 1,
+            "tags": [
+                "primoDB",
+                "prova",
+                "test",
+                1
+            ],
+            "deletedAt": null,
+            "createdAt": "2024-07-18T14:58:16.629Z",
+            "updatedAt": "2024-07-18T14:58:16.629Z"
+        },
+        "spectrograms": [
+            "nonapnea0.png",
+            "nonapnea1.png",
+            "nonapnea10.png",
+            "nonapnea2.png",
+            "nonapnea3.png",
+            "nonapnea4.png",
+            "nonapnea5.png",
+            "nonapnea6.png",
+            "nonapnea7.png",
+            "nonapnea8.png",
+            "nonapnea9.png"
+        ]
+    },
+    {
+        "dataset": {
+            "id": 8,
+            "name": "datasetProva1",
+            "description": "datset prova",
+            "userId": 1,
+            "tags": [],
+            "deletedAt": null,
+            "createdAt": "2024-07-18T15:09:53.737Z",
+            "updatedAt": "2024-07-18T15:09:53.737Z"
+        },
+        "spectrograms": [
+            "apnea181.png",
+            "apnea107.png",
+            "apnea167.png",
+            "apnea174.png",
+            "apnea180.png",
+            "apnea181.png",
+            "apnea247.png",
+            "apnea259.png",
+            "apnea268.png",
+            "apnea285.png",
+            "apnea290.png"
+        ]
+    }
+]
 ```
 
 ### Stato di avanzamento dell'inferenza
@@ -252,33 +403,101 @@ All'interno dei _Path Variables_ si deve trovare
 
 `jobId`: id dell'inferenza di cui controllare lo stato
 ##### Parametri risposta
+
+`status`: stato in cui si trova l'inferenza (completed, failed, pending,...)
+
+`result[]`: lista di risultati ottenuti dall'inferenza
+* `name`: nome del file su cui si è fatta inferenza
+* `prediction`: predizione del modello (1= apnea, 0= non apnea)ì
 #### Esempio
 ##### Risposta
+Dipende dallo stato in cui si trova l'inferenza indicata. Di seguito riportiamo quando essa è _Completed_. Da notare il fatto che il risultato delle predizioni sia sempre 1 nell'esempio, indicando una costante presenza di apnea, tale risultato è corretto poichè i file passati al dataset su cui è avvenuta l'inferenza contenevano unicamente immagini di apnee.
 ```
+{
+    "status": "Completed",
+    "result": [
+        {
+            "name": "apnea181.png",
+            "prediction": 1
+        },
+        {
+            "name": "apnea107.png",
+            "prediction": 1
+        },
+        {
+            "name": "apnea167.png",
+            "prediction": 1
+        },
+        {
+            "name": "apnea174.png",
+            "prediction": 1
+        },
+        {
+            "name": "apnea180.png",
+            "prediction": 1
+        },
+        {
+            "name": "apnea181.png",
+            "prediction": 1
+        },
+        {
+            "name": "apnea247.png",
+            "prediction": 1
+        },
+        {
+            "name": "apnea259.png",
+            "prediction": 1
+        },
+        {
+            "name": "apnea268.png",
+            "prediction": 1
+        },
+        {
+            "name": "apnea285.png",
+            "prediction": 1
+        },
+        {
+            "name": "apnea290.png",
+            "prediction": 1
+        }
+    ]
+}
 ```
 
 ### Login
 #### Rotta
 POST http://localhost:3000/login
 #### Descrizione
-##### Authorization
 ##### Parametri richiesta
 All'interno del body deve essere contenuto
 
 `email`: email dell'utente che vuole effettuare il login
 
 `password`: password dell'utente che vuole effettuare il login
+
 ##### Parametri risposta
+
+`status`: messaggio che indica lo stato in cui si trova la richiesta, ovvero se è andata a buon fine, se ci sono errori, ecc
+
+`statusCode`: codice standardizzato HTTP che specializza lo status della richiesta
+
+`token`: token associato all'utente loggato e tramite il quale verrà concessa l'autorizzazione ad operare le altre rotte
+
 #### Esempio
 ##### Body della richiesta
 ```
 {
-  "email":"admin12@mail.com",
-  "password": "admin"
+  "email":"user1@example.com",
+  "password": "user1"
 }
 ```
 ##### Risposta
 ```
+{
+    "status": "successfully logged in ",
+    "statusCode": 200,
+    "token": "exampleToken"
+}
 ```
 
 ### Controllo dei token residui
@@ -291,11 +510,20 @@ Per eseguire questa rotta è necessario che l'utente abbia effettuato l'accesso 
 `Auth Type`: Bearer Token.
 
 `Token`: _token JWT_
-##### Parametri richiesta
 ##### Parametri risposta
+`status`: messaggio che indica lo stato in cui si trova la richiesta, ovvero se è andata a buon fine, se ci sono errori, ecc
+
+`statusCode`: codice standardizzato HTTP che specializza lo status della richiesta
+
+`numToken`: numero di token residui dell'utente
 #### Esempio
 ##### Risposta
 ```
+{
+    "status": "OK ",
+    "statusCode": 200,
+    "numToken": 1.8499999999999996
+}
 ```
 
 ### Aggiunta di token ad un utente
@@ -315,6 +543,13 @@ All'interno del body deve essere contenuto
 
 `numToken`: numero di token da assegnare all'utente
 ##### Parametri risposta
+`message`: messaggio che indica lo stato in cui si trova la richiesta, ovvero se è andata a buon fine, se ci sono errori, ecc
+
+`statusCode`: codice standardizzato HTTP che specializza lo status della richiesta
+
+`userEmail`: email dell'utente a cui sono stati assegnati i token
+
+`numToken`:  numero di token residui dell'utente
 #### Esempio
 ##### Body della richiesta
 ```
@@ -325,11 +560,17 @@ All'interno del body deve essere contenuto
 ```
 ##### Risposta
 ```
+{
+    "message": "Token number updated",
+    "statusCode": 201,
+    "userEmail": "user1@example.com",
+    "numToken": 97.64999999999999
+}
 ```
 
 ### Aggiunta di un nuovo spettrogramma
 #### Rotta
-POST http://localhost:3000/newspectrogram
+POST http://localhost:3000/spectrogram
 #### Descrizione
 ##### Authorization
 Per eseguire questa rotta è necessario che l'utente abbia effettuato l'accesso tramite JWT. 
@@ -344,15 +585,55 @@ All'interno del body, come _form-data_, deve essere contenuto
 
 `datasetName`: nome del dataset in cui inserire i file
 ##### Parametri risposta
+`status`: messaggio che indica lo stato in cui si trova la richiesta, ovvero se è andata a buon fine, se ci sono errori, ecc
+
+`statusCode`: codice standardizzato HTTP che specializza lo status della richiesta
+
+`newSpectrogram`: indica le specifiche del nuovo spettrogramma aggiunto; in particolare contiene:
+* `name`: nome del nuovo file
+* `data`: attributi specifici del file che è stato inserito
+  * `type`: tipo di dato inserito
+  * `data`: (?)
+* `datasetId`: codice identificativo del dataset in cui è stato aggiunto lo spettrogramma
+
 #### Esempio
 ##### Body della richiesta
+<p align="center">
+    <img src="./diagrammi/newspectrogram.png" alt="Diagramma del Sistema">
+</p>
+
 ##### Risposta
 ```
+{
+    "status": "spectrogram added",
+    "statusCode": 201,
+    "newSpectrogram": {
+        "name": "apnea181.png",
+        "data": {
+            "type": "Buffer",
+            "data": [
+                137,
+                80,
+                78,
+                71,
+                13,
+                10,
+                26,
+                10,
+                0,
+                0,
+                212,
+                ...,
+            ]
+        },
+        "datasetId": 8
+    }
+}
 ```
 
 ### Aggiunta di una cartella zip
 #### Rotta
-POST http://localhost:3000/uploadfilesfromzip
+POST http://localhost:3000/uploadFilesFromZip
 #### Descrizione
 ##### Authorization
 Per eseguire questa rotta è necessario che l'utente abbia effettuato l'accesso tramite JWT. 
@@ -367,8 +648,20 @@ All'interno del body, come _form-data_, deve essere contenuto
 
 `datasetName`: nome del dataset in cui inserire i file
 ##### Parametri risposta
+`status`: messaggio che indica lo stato in cui si trova la richiesta, ovvero se è andata a buon fine, se ci sono errori, ecc
+
+`statusCode`: codice standardizzato HTTP che specializza lo status della richiesta
+
 #### Esempio
 ##### Body della richiesta
+<p align="center">
+    <img src="./diagrammi/uploadFileFromZip.png" alt="Diagramma del Sistema">
+</p>
+
 ##### Risposta
 ```
+{
+    "status": "Spectrograms successfully uploaded",
+    "statusCode": 201
+}
 ```
