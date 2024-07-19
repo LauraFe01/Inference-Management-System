@@ -1,14 +1,13 @@
 # Inference Management System for Sleep Apnea Syndrome
 
 ## Obiettivo del progetto
-Il progetto consiste nella realizzazione di un backend per la gestione delle inferenze fatte su immagini (con estensione .png) di spettrogrammi o su cartelle zip, tramite l'utilizzo di due modelli di Deep-Learning pre-addestrati per l'individuazione di apnee notturne.
+Il progetto consiste nella realizzazione di un backend per la gestione delle inferenze fatte su immagini (con estensione .png) di spettrogrammi, tramite l'utilizzo di due modelli di Deep-Learning pre-addestrati per l'individuazione di apnee notturne.
 I modelli messi a disposizione sono stati addestrati su un diverso numero di pazienti, in particolare uno su 10 e l'altro su 20, il che risulta in prestazioni differenti.
-Il backend realizzato permette agli utenti di autenticarsi, generare dataset e fare infereza su questi ultimi, nei quali possono essere inserite sia immagini che cartelle zip. Le operazioni di inferenza e l'aggiunta di materiale multimediale sono consentite agli utenti
-a condizione che dispongano di un numero sufficiente di token. Quando uno degli utenti esaurisce i token a disposizione, può richiederne all'admin. Il tutto è gestito da un sistema di autenticazione JWT (JSON Web Token).
+Il backend realizzato permette agli utenti di autenticarsi, generare dataset e fare infereza su questi ultimi. Le operazioni di inferenza e l'aggiunta di materiale multimediale (singole immagini o cartelle zip contenenti immagini) sono consentite agli utenti a condizione che dispongano di un numero sufficiente di token. Quando uno degli utenti esaurisce i token a disposizione, può richiederne all'admin. Il tutto è gestito da un sistema di autenticazione JWT (JSON Web Token).
 
 ## Progettazione Database
 Il server trova appoggio in un database PostgreSQL, impostato su un server esterno. Le credenziali di accesso, come nome del database, utente, password ed host, sono salvate come variabili di ambiente.
-il batabase è formato da tre entità: datasets, spectrograms e Utente, ciascuno con i propri attributi.
+Il database è formato da tre entità: datasets, spectrograms e users, ciascuno con i propri attributi.
 Di seguito riportiamo il diagramma relazionale utilizato per la progettazione del database:
 
 <p align="center">
@@ -16,28 +15,28 @@ Di seguito riportiamo il diagramma relazionale utilizato per la progettazione de
 </p>
 
 ## Diagrammi dei Casi D'Uso
-Utilizziamo i diagrammi dei casi d'uso per poter identificare in maniera chiara gli attori che interagiscono con il sistema e descrivere tale interazioni; inoltre, essi ci forniscono una panoramica chiara delle funzionalità del sistema stesso.
+I digrammi dei casi d'uso, esposti di seguito, permettono di identificare in maniera chiara gli attori che interagiscono con il sistema e descrivere tale interazioni; inoltre, essi ci forniscono una panoramica delle funzionalità del sistema stesso.
 
 ### Attori
-Gli attori sono le entità che interagiscono con il nostro sistema. In particolare ne sono state individuate 3 tipologie: Utente, Admin e Sistema
+Gli attori sono le entità che interagiscono con il nostro sistema. In particolare ne sono state individuate 3 tipologie: User, Admin e System
 <p align="center">
     <img src="./diagrammi/casiDusoAttori.png" alt="Diagramma del Sistema">
 </p>
 
 ### Gestione Utenti
-Tale diagramma riporta le azioni offerte dal sistema agli attori
+Tale diagramma riporta le azioni per la gestione delle attività relative agli utenti
 <p align="center">
     <img src="./diagrammi/UserManagement.png" alt="Diagramma del Sistema">
 </p>
 
 ### Gestione Datasets
-Tale diagramma riporta le azioni offerte dal sistema sui datasets
+Tale diagramma riporta le azioni per la gestione delle attività relative ai dataset
 <p align="center">
     <img src="./diagrammi/casiDusoDatasetManagement.png" alt="Diagramma del Sistema">
 </p>
 
 ## Diagrammi delle Sequenze
-I diagrammi di sequenza sono usati per descrivere l'interazone seuqenziale tra le varie entità all'interno del sistema durante l'esecuzione di una rotta. Di seguito andiamo a riportare dei diagrammi che descrivono il funzionamento delle 11 rotte elaborate
+I diagrammi di sequenza, in fase di progettazione, sono fondamentali per descrivere l'interazione sequenziale espresse ad alto livello di astrazione tra le varie entità all'interno del sistema durante l'esecuzione di una rotta. Di seguito andiamo a riportare i diagrammi che descrivono il funzionamento delle 11 rotte elaborate. 
 
 ### Creazione di un dataset vuoto
 <p align="center">
@@ -104,7 +103,7 @@ Durante lo sviuppo del sistema sono stati utilizzati diversi pattern per garanti
 
 **Factory Method** - il Factory Method è utilizzato nel nostro progetto per centralizzare ed uniformare gli errori. Tramite la classe errorFactory è fornito un metodo statico che, in base al tipo di errore passato come paramtetro, istanzia e restituisce oggetti delle varie sottoclassi ('CustomError', 'NotFoundError',...). Tale implementazione ci permette di gestire in modo coerente gli errori in tutto il codice e lanciare appropriati messaggi e status code.
 
-**Middleware pattern** - il Middleware pattern è utilizzato per gestire coperazioni comuni di autenticazione e validazione delle richieste HTTP. In particolare i middleware utilizzati sono tre:
+**Middleware pattern** - il Middleware pattern è utilizzato per gestire operazioni comuni di autenticazione e validazione delle richieste HTTP. In particolare i middleware utilizzati sono quattro:
 1. **authMiddleware**: gestisce l'autenticazione delle richieste; in particolare, la presenza del JWT token e la sua validità.
 2. **isAdminMiddleware**: controlla se l'utente autenticato gode dei privilegi di amministratore.
 3. **checkValidJson**: gestisce la validazione del formato JSON dele richuieste in entrata.
@@ -151,7 +150,7 @@ il database è già fornito con i dati minimali per l'utilizzo, in particolare t
     { email: 'user1@example.com', password: 'user1', numToken: 10, isAdmin: true },
     { email: 'user2@example.com', password: 'user2', numToken: 10, isAdmin: false }
 ```
-Se si desidera resettare il database lo si può fare impostando `await db.sync({ force: false });` con force: true in _init_database.ts_, per poter ripopolare il database bisogna scommentare la riga 25 della classe _server.ts_
+Se si desidera resettare il database lo si può fare impostando `await db.sync({ force: false });` con force: true in _init_database.ts_, per poter ripopolare il database bisogna scommentare l'istruzione `seed()` collocata alla riga 25 della classe _server.ts_
 
 ## Rotte
 Tramite Postman è possibile eseguire chiamate alle seguenti rotte
@@ -244,7 +243,7 @@ Per eseguire questa rotta è necessario che l'utente abbia effettuato l'accesso 
 ##### Parametri richiesta
 All'interno del body deve essere contenuto
 
-`updateField`: nome del campo da modificare
+`updateField`: dizionario chiave-valore con il nome dei campi da poter modificare e relativo valore
 
 e all'interno dei _Path Variables_ si deve trovare
 
@@ -284,6 +283,7 @@ Supponiamo di voler cambiare il nome ad un dataset
     }
 }
 ```
+Nell'esempio riportato si è voluto modificare il nome del dataset ma è possibile inserire un numero maggiore di campi se desiderato.
 
 ### Inferenza su un dataset
 #### Rotta
@@ -303,7 +303,7 @@ All'interno dei _Path Variables_ si deve trovare
 
 `message`: messaggio che indica lo stato in cui si trova la richiesta, ovvero se è andata a buon fine, se ci sono errori, ecc
 
-`jobId`: id con cui l'inferenza è stata aggiunta alla coda e con la quale può essere richiamata
+`jobId`: codice identificativo con cui l'inferenza è stata aggiunta alla coda e con la quale può essere richiamata
 #### Esempio
 ##### Risposta
 ```
@@ -584,8 +584,8 @@ All'interno del body deve essere contenuto
 ##### Body della richiesta
 ```
 {
-    "userEmail": "prova1@mail.com",
-    "newTokens": 100
+    "userEmail": "user1@example.com",
+    "newTokens": 10
 }
 ```
 ##### Risposta
