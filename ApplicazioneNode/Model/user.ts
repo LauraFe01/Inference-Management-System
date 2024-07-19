@@ -67,7 +67,7 @@ User.init(
     sequelize: db,        // Sequelize instance
     modelName: 'User',    // Model name
     tableName: 'users',   // Table name in the database
-    timestamps: true,     // Automatically add createdAt and updatedAt fields
+    timestamps: true,    // Automatically add createdAt and updatedAt fields
   }
 );
 

@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import UserDAOApplication from '../DAO/userDao';
+import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { getDecodedToken } from '../Utils/token_utils';
 import config from '../Config/JWT_config';
@@ -17,11 +18,15 @@ export const userController = {
         throw ErrorFactory.createError(ErrorType.MissingParameterError, 'Missing required fields (email, password)');
       }
 
-      const user = await userApp.getUserByEmailPass(email);
+      const user = await userApp.getUserByEmail(email);
 
       if (user.length === 0) {
         throw ErrorFactory.createError(ErrorType.NotFoundError, 'No User with that email!');
-      } else if (user[0].password !== password) {
+      } 
+      
+      const isPasswordValid = await bcrypt.compare(password, user[0].password);
+
+      if (!isPasswordValid) {
         throw ErrorFactory.createError(ErrorType.UnauthorizedError, 'Wrong Password inserted');
       } else {
         const token = jwt.sign(
@@ -72,7 +77,7 @@ export const userController = {
         throw ErrorFactory.createError(ErrorType.ValidationError, 'newTokens must be a number');
       }
 
-      const user = await userApp.getUserByEmailPass(userEmail);
+      const user = await userApp.getUserByEmail(userEmail);
 
       if (user.length === 0) {
         throw ErrorFactory.createError(ErrorType.NotFoundError, 'User not found');

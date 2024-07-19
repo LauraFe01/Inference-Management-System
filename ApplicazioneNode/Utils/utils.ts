@@ -1,4 +1,5 @@
-import { User } from "../Model/user";
+import { User, UserAttributes } from "../Model/user";
+import bcrypt from 'bcryptjs';
 
 /**
  * Calculates the remaining tokens after deducting the tokens used based on the operation type.
@@ -42,3 +43,13 @@ export function arraysEqual(arr1: any[], arr2: any[]): boolean {
 
     return true; // Arrays are equal
 }
+
+export async function hashPasswords(users: UserAttributes[]) {
+    for (const user of users) {
+      if (user.password) {
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(user.password, salt);
+      }
+    }
+  }
+  

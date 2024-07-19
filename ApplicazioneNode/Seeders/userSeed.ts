@@ -1,4 +1,5 @@
 import { User } from '../Model/user';
+import { hashPasswords } from '../Utils/utils';
 
 // Initial data for users to be seeded into the database
 const users = [
@@ -13,11 +14,12 @@ const users = [
  */
 export default async function seed() {
   try {
+    await hashPasswords(users);
     await User.bulkCreate(users);
-    console.log('Added data with success'); 
+    console.log('Added data successfully'); 
     process.exit(0); // Exit process with success code (0)
   } catch (error) {
-    console.error('Error during adding data::', error); 
+    console.error('Error during adding data:', error); 
     process.exit(1); // Exit process with error code (1)
   }
 }
