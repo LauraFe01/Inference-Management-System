@@ -633,7 +633,7 @@ All'interno del body, come _form-data_, deve essere contenuto
 
 ### Aggiunta di una cartella zip
 #### Rotta
-POST http://localhost:3000/uploadfilesfromzip
+POST http://localhost:3000/uploadFilesFromZip
 #### Descrizione
 ##### Authorization
 Per eseguire questa rotta è necessario che l'utente abbia effettuato l'accesso tramite JWT. 
