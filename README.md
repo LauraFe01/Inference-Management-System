@@ -122,7 +122,36 @@ Durante lo sviuppo del sistema sono stati utilizzati diversi pattern per garanti
 
 
 ## Avvio
+Per poter correttamente avviare il sistema bisogna disporre dei seguento requsiiti:
 
+1. Docker
+2. Docker Compose
+3. Node.js
+4. Express
+5. Sequelize
+
+### Istruzioni 
+1. Clonare il repository nella propria directory o scaricare direttamente il file .zip:
+
+   `git clone https://github.com/LauraFe01/ProgettoPA`
+3. Eseguire la build del progetto
+   
+   `docker-compose build`
+4. Eseguire il run del progetto
+   
+   `docker-compose up`
+   
+In alternativa si può eseguire build e run del progetto insieme con il comando:
+
+`docker-compose up --build`
+
+il database è già fornito con i dati minimali per l'utilizzo, in particolare troviamo gli utenti:
+
+```
+    { email: 'user1@example.com', password: 'user1', numToken: 10, isAdmin: true },
+    { email: 'user2@example.com', password: 'user2', numToken: 10, isAdmin: false }
+```
+Se si desidera resettare il database lo si può fare impostando `await db.sync({ force: false });` con force: true in _init_database.ts_, per poter ripopolare il database bisogna scommentare la riga 25 della classe _server.ts_
 
 ## Rotte
 Tramite Postman è possibile eseguire chiamate alle seguenti rotte
