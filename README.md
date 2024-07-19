@@ -27,7 +27,7 @@ Gli attori sono le entità che interagiscono con il nostro sistema. In particola
 ### Gestione Utenti
 Tale diagramma riporta le azioni offerte dal sistema agli attori
 <p align="center">
-    <img src="./diagrammi/casiDusoUserManagement.png" alt="Diagramma del Sistema">
+    <img src="./diagrammi/UserManagement.png" alt="Diagramma del Sistema">
 </p>
 
 ### Gestione Datasets
