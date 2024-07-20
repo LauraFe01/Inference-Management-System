@@ -591,7 +591,7 @@ All'interno del body deve essere contenuto
 ```
 {
     "message": "Token number updated",
-    "statusCode": 201,
+    "statusCode": 200,
     "userEmail": "user1@example.com",
     "numToken": 97.64999999999999
 }
