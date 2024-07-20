@@ -725,7 +725,7 @@ All'interno del body, come _form-data_, deve essere contenuto
 ```
 
 ## Collection Postman
-Il file contenente la collection di Postman con tutte le rotte si può trovare [qui](path/to/your/file.json). 
+Il file contenente la collection di Postman con tutte le rotte si può trovare [qui](https://github.com/LauraFe01/ProgettoPA/blob/main/Routes%20Test.postman_collection.json). 
 
 ## Contributori
 * Laura Ferretti
