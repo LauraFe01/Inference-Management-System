@@ -15,7 +15,7 @@ Di seguito riportiamo il diagramma relazionale utilizato per la progettazione de
 </p>
 
 ## Diagrammi dei Casi D'Uso
-I digrammi dei casi d'uso, esposti di seguito, permettono di identificare in maniera chiara gli attori che interagiscono con il sistema e descrivere tale interazioni; inoltre, essi ci forniscono una panoramica delle funzionalità del sistema stesso.
+I diagrammi dei casi d'uso, esposti di seguito, permettono di identificare in maniera chiara gli attori che interagiscono con il sistema e descrivere tale interazioni; inoltre, essi ci forniscono una panoramica delle funzionalità del sistema stesso.
 
 ### Attori
 Gli attori sono le entità che interagiscono con il nostro sistema. In particolare ne sono state individuate 3 tipologie: User, Admin e System
@@ -120,7 +120,7 @@ Durante lo sviuppo del sistema sono stati utilizzati diversi pattern per garanti
 
 
 ## Avvio
-Per poter correttamente avviare il sistema bisogna disporre dei seguento requsiiti:
+Per poter correttamente avviare il sistema bisogna disporre dei seguenti requsiti:
 
 1. Docker
 2. Docker Compose
@@ -151,9 +151,29 @@ il database è già fornito con i dati minimali per l'utilizzo, in particolare t
 
 ```
 
-Le password per ciascun utente vengono hashate e salvate nel database.
+e un dataset per l'utente admin, con la seguente struttura:
 
-Se si desidera resettare il database lo si può fare impostando `await db.sync({ force: false });` con force: true in _init_database.ts_, per poter ripopolare il database bisogna scommentare l'istruzione `seed()` collocata alla riga 25 della classe _server.ts_
+```
+    {
+        "status": "Empty Dataset added",
+        "statusCode": 201,
+        "newDataset" : {
+            "name": "dataset"
+            "description": "Il mio dataset",
+            "userId" : 2,
+            "tags": [
+                "primoDB",
+                "test"]
+    }
+
+```
+
+Le password per ciascun utente vengono salvate nel database hashate, in modo da garantire un maggior livello di sicurezza.
+
+#### Note:
+Se si desidera resettare il database lo si può fare impostando `await db.sync({ force: false });` con force: true in _init_database.ts_.
+Nel caso in cui si voglia ripopolare il database (con i dati dei due utenti di default) bisogna scommentare l'istruzione `seed()` collocata alla riga 25 del file _server.ts_.
+Inoltre, c'è la possibilità di pulire la coda del gestore bullMQ scommentando l'istruzione cleanQueue() situata nel file _server.ts_.
 
 ## Rotte
 Tramite Postman è possibile eseguire chiamate alle seguenti rotte
@@ -163,7 +183,7 @@ Tramite Postman è possibile eseguire chiamate alle seguenti rotte
 POST http://localhost:3000/emptydataset
 #### Descrizione
 ##### Authorization
-Per eseguire questa rotta è necessario che l'utente abbia effettuato l'accesso tramite JWT. 
+Per eseguire questa rotta è necessario che l'utente abbia effettuato il login e ottenuto il token di autenticazione JWT. 
 
 `Auth Type`: Bearer Token.
 
@@ -174,6 +194,8 @@ Nel body devono essere inseriti i seguenti parametri
 `name`: nome univoco fornito al nuovo dataset
 
 `description`: descrizione del dataset creato
+
+`tags` (opzionale): lista dei tags associati al dataset sotto forma di lista di stringhe
 ##### Parametri risposta
 `status`: messaggio che indica lo stato in cui si trova la richiesta, ovvero se è andata a buon fine, se ci sono errori, ecc
 
@@ -182,13 +204,15 @@ Nel body devono essere inseriti i seguenti parametri
 `newDataset`: indica le specifiche del nuovo dataset aggiunto; in particolare contiene:
 * `name`: nome del nuovo dataset
 * `description`: descrizione del nuovo dataset
+* `tags`: lista dei tags associati al dataset
 * `userId`: id dell'utente che ha creato il nuovo dataset
 #### Esempio
 ##### Body della richiesta
 ```
 {
   "name":"datasetProva1",
-  "description":"datset prova"
+  "description":"datset prova",
+  "tags": ["primoDB", "prova"]
 }
 ```
 ##### Risposta
@@ -199,7 +223,8 @@ Nel body devono essere inseriti i seguenti parametri
     "newDataset": {
         "name": "datasetProva1",
         "description": "datset prova",
-        "userId": 1
+        "userId": 1,
+        "tags": ["primoDB", "prova"]
     }
 }
 ```
@@ -209,13 +234,13 @@ Nel body devono essere inseriti i seguenti parametri
 PUT http://localhost:3000/dataset/:name/cancel
 #### Descrizione
 ##### Authorization
-Per eseguire questa rotta è necessario che l'utente abbia effettuato l'accesso tramite JWT. 
+Per eseguire questa rotta è necessario che l'utente abbia effettuato il login e ottenuto il token di autenticazione JWT. 
 
 `Auth Type`: Bearer Token.
 
 `Token`: _token JWT_
 ##### Parametri richiesta
-All'interno dei _Path Variables_ si deve trovare
+All'interno dei _Path Variables_ si deve inserire
 
 `name`: nome del dataset da cancellare
 ##### Parametri risposta
@@ -238,7 +263,7 @@ All'interno dei _Path Variables_ si deve trovare
 PATCH http://localhost:3000/dataset/:name/update
 #### Descrizione
 ##### Authorization
-Per eseguire questa rotta è necessario che l'utente abbia effettuato l'accesso tramite JWT. 
+Per eseguire questa rotta è necessario che l'utente abbia effettuato il login e ottenuto il token di autenticazione JWT. 
 
 `Auth Type`: Bearer Token.
 
@@ -246,9 +271,9 @@ Per eseguire questa rotta è necessario che l'utente abbia effettuato l'accesso 
 ##### Parametri richiesta
 All'interno del body deve essere contenuto
 
-`updateField`: dizionario chiave-valore con il nome dei campi da poter modificare e relativo valore
+`updateField`: dizionario chiave-valore con il nome dei campi da voler modificare e relativo valore
 
-e all'interno dei _Path Variables_ si deve trovare
+e all'interno dei _Path Variables_ si deve inserire
 
 `name`: nome del dataset da modificare
 ##### Parametri risposta
@@ -260,6 +285,7 @@ e all'interno dei _Path Variables_ si deve trovare
 `newDataset`: indica le specifiche del nuovo dataset aggiunto; in particolare contiene:
 * `name`: nome del nuovo dataset
 * `description`: descrizione del nuovo dataset
+* `tags`: lista dei tags associati al dataset
 * `userId`: id dell'utente che ha creato il nuovo dataset
   
 #### Esempio
@@ -280,6 +306,7 @@ Supponiamo di voler cambiare il nome ad un dataset
         "name": "datasetCambiato",
         "description": "datset prova",
         "userId": 1,
+        "tags": ["primoDB", "prova"],
         "deletedAt": null,
         "createdAt": "2024-07-18T14:24:43.356Z",
         "updatedAt": "2024-07-18T14:37:12.885Z"
@@ -293,7 +320,7 @@ Nell'esempio riportato si è voluto modificare il nome del dataset ma è possibi
 POST http://localhost:3000/startInference/:datasetName
 #### Descrizione
 ##### Authorization
-Per eseguire questa rotta è necessario che l'utente abbia effettuato l'accesso tramite JWT. 
+Per eseguire questa rotta è necessario che l'utente abbia effettuato il login e ottenuto il token di autenticazione JWT. 
 
 `Auth Type`: Bearer Token.
 
@@ -351,9 +378,7 @@ Per eseguire questa rotta è necessario che l'utente abbia effettuato l'accesso 
             "userId": 1,
             "tags": [
                 "primoDB",
-                "prova",
-                "test",
-                1
+                "prova"
             ],
             "deletedAt": null,
             "createdAt": "2024-07-18T14:27:45.907Z",
@@ -426,7 +451,7 @@ Per eseguire questa rotta è necessario che l'utente abbia effettuato l'accesso 
 GET http://localhost:3000/inferenceStatus/:jobId
 #### Descrizione
 ##### Authorization
-Per eseguire questa rotta è necessario che l'utente abbia effettuato l'accesso tramite JWT. 
+Per eseguire questa rotta è necessario che l'utente abbia effettuato il login e ottenuto il token di autenticazione JWT. 
 
 `Auth Type`: Bearer Token.
 
@@ -441,7 +466,7 @@ All'interno dei _Path Variables_ si deve trovare
 
 `result[]`: lista di risultati ottenuti dall'inferenza
 * `name`: nome del file su cui si è fatta inferenza
-* `prediction`: predizione del modello (1= apnea, 0= non apnea)ì
+* `prediction`: predizione del modello (1= apnea, 0= non apnea)
 #### Esempio
 ##### Risposta
 Dipende dallo stato in cui si trova l'inferenza indicata. Di seguito riportiamo quando essa è _Completed_. Da notare il fatto che il risultato delle predizioni sia sempre 1 nell'esempio, indicando una costante presenza di apnea, tale risultato è corretto poichè i file passati al dataset su cui è avvenuta l'inferenza contenevano unicamente immagini di apnee.
@@ -514,14 +539,14 @@ All'interno del body deve essere contenuto
 
 `statusCode`: codice standardizzato HTTP che specializza lo status della richiesta
 
-`token`: token associato all'utente loggato e tramite il quale verrà concessa l'autorizzazione ad operare le altre rotte
+`token`: token JWT associato all'utente loggato e tramite il quale verrà concessa l'autorizzazione ad operare le altre rotte
 
 #### Esempio
 ##### Body della richiesta
 ```
 {
-  "email":"user1@example.com",
-  "password": "user1"
+  "email":"user@example.com",
+  "password": "user"
 }
 ```
 ##### Risposta
@@ -538,7 +563,7 @@ All'interno del body deve essere contenuto
 GET http://localhost:3000/remainingTokens
 #### Descrizione
 ##### Authorization
-Per eseguire questa rotta è necessario che l'utente abbia effettuato l'accesso tramite JWT. 
+Per eseguire questa rotta è necessario che l'utente abbia effettuato il login e ottenuto il token di autenticazione JWT. 
 
 `Auth Type`: Bearer Token.
 
@@ -564,7 +589,7 @@ Per eseguire questa rotta è necessario che l'utente abbia effettuato l'accesso 
 POST http://localhost:3000/refillTokens
 #### Descrizione
 ##### Authorization
-Per eseguire questa rotta è necessario che l'utente abbia effettuato l'accesso tramite JWT. 
+Per eseguire questa rotta è necessario che l'admin abbia effettuato il login e ottenuto il token di autenticazione JWT. 
 
 `Auth Type`: Bearer Token.
 
@@ -606,7 +631,7 @@ All'interno del body deve essere contenuto
 POST http://localhost:3000/spectrogram
 #### Descrizione
 ##### Authorization
-Per eseguire questa rotta è necessario che l'utente abbia effettuato l'accesso tramite JWT. 
+Per eseguire questa rotta è necessario che l'utente abbia effettuato il login e ottenuto il token di autenticazione JWT. 
 
 `Auth Type`: Bearer Token.
 
@@ -669,7 +694,7 @@ All'interno del body, come _form-data_, deve essere contenuto
 POST http://localhost:3000/uploadFilesFromZip
 #### Descrizione
 ##### Authorization
-Per eseguire questa rotta è necessario che l'utente abbia effettuato l'accesso tramite JWT. 
+Per eseguire questa rotta è necessario che l'utente abbia effettuato il login e ottenuto il token di autenticazione JWT. 
 
 `Auth Type`: Bearer Token.
 
@@ -699,4 +724,9 @@ All'interno del body, come _form-data_, deve essere contenuto
 }
 ```
 
-Il codice è stato sottoposto ad una valutazione di correttezza con typescript-eslint.
+## Collection Postman
+Il file contenente la collection di Postman con tutte le rotte si può trovare [qui](path/to/your/file.json). 
+
+## Contributori
+* Laura Ferretti
+* Alessandra D'Anna
