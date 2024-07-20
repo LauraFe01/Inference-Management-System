@@ -14,6 +14,7 @@ export class CustomError extends Error {
   }
 }
 
+
 /**
  * Error class for indicating missing parameters.
  * @class MissingParameterError
@@ -25,6 +26,7 @@ export class MissingParameterError extends CustomError {
     super(message, 422); // Call parent constructor with status code 422 (Unprocessable Entity)
   }
 }
+
 
 /**
  * Error class for indicating resource not found.
@@ -38,6 +40,7 @@ export class NotFoundError extends CustomError {
   }
 }
 
+
 /**
  * Error class for indicating validation errors.
  * @class ValidationError
@@ -49,6 +52,7 @@ export class ValidationError extends CustomError {
     super(message, 400); // Call parent constructor with status code 400 (Bad Request)
   }
 }
+
 
 /**
  * Error class for indicating insufficient tokens.
@@ -62,6 +66,7 @@ export class TokenError extends CustomError {
   }
 }
 
+
 /**
  * Error class for indicating unauthorized access.
  * @class UnauthorizedError
@@ -73,6 +78,7 @@ export class UnauthorizedError extends CustomError {
     super(message, 401); // Call parent constructor with status code 401 (Unauthorized)
   }
 }
+
 
 /**
  * Error class for indicating unsupported media type.
@@ -86,6 +92,7 @@ export class UnsupportedMediaType extends CustomError {
   }
 }
 
+
 /**
  * Error class for indicating internal server errors.
  * @class InternalServerError
@@ -98,6 +105,7 @@ export class InternalServerError extends CustomError {
   }
 }
 
+
 /**
  * Error class for indicating fields that cannot be updated.
  * @class FieldsNotUpdatable
@@ -109,6 +117,7 @@ export class FieldsNotUpdatable extends CustomError {
     super(message, 403); // Call parent constructor with status code 403 (Forbidden)
   }
 }
+
 
 /**
  * Error class for indicating multiple file upload errors.

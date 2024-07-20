@@ -84,8 +84,11 @@ export const userController = {
       }
 
       const numToken = user[0].numToken + newTokens;
+      if (numToken < 0){
+        throw ErrorFactory.createError(ErrorType.ValidationError, 'User does not have this many tokens')
+      }
       await userApp.updateUser(user[0], { numToken });
-      res.status(201).json({ message: 'Token number updated', statusCode: 201, userEmail, numToken });
+      res.status(200).json({ message: 'Token number updated', statusCode: 201, userEmail, numToken });
     } catch (error) {
       next(error);
     }

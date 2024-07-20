@@ -12,7 +12,6 @@ def inference():
     data = request.json
     model_id = data['modelId']
     spectrograms = data['spectrograms']
-    print(spectrograms)
     inferenceObj = Inference(model_id)
 
     for spectrogram in spectrograms:
@@ -20,7 +19,6 @@ def inference():
         name = spectrogram["name"]
         torch_tensor = decode_image_from_buffer(buffer)
 
-        print(type(torch_tensor))
         prediction_tensor = inferenceObj.inference_data(torch_tensor)
         prediction = prediction_tensor.item()
 

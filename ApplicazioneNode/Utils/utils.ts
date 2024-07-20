@@ -44,7 +44,13 @@ export function arraysEqual(arr1: any[], arr2: any[]): boolean {
     return true; // Arrays are equal
 }
 
-export async function hashPasswords(users: UserAttributes[]) {
+/**
+ * Hashes the passwords of an array of user objects.
+ *
+ * @param {UserAttributes[]} users - An array of user objects. Each user object should contain a password property.
+ * @returns {Promise<void>} A promise that resolves when all passwords have been hashed.
+ */
+export async function hashPasswords(users: UserAttributes[]): Promise<void> {
     for (const user of users) {
       if (user.password) {
         const salt = await bcrypt.genSalt(10);

@@ -10,14 +10,8 @@ const inferenceWorker = new Worker('inferenceQueue', async job => {
   try {
     const { modelId, spectrograms } = job.data;
 
-    // Log the start of inference process
-    console.log('Performing inference for model:', modelId, 'on spectrograms:', spectrograms);
-
     // Send POST request to Flask server for inference
     const response = await axios.post('http://flask_app:5000/inference', { modelId, spectrograms });
-
-    // Log response from Flask server
-    console.log('Response from Flask server:', response.data);
 
     // Return response data to indicate successful completion of job
     return response.data;

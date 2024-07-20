@@ -9,12 +9,13 @@ interface UserAttributes {
   password: string;    // Password of the user
   numToken: number;    // Number of tokens for the user
   isAdmin: boolean;    // Indicates if the user is an admin
+  jobIds?: string[];
   createdAt?: Date;    // Automatically managed by Sequelize (optional)
   updatedAt?: Date;    // Automatically managed by Sequelize (optional)
 }
 
 // Define attributes required to create a new user
-interface UserCreationAttributes extends Optional<UserAttributes, 'id'> {}
+interface UserCreationAttributes extends Optional<UserAttributes, 'id' | 'jobIds'> {}
 
 /**
  * User Model class
@@ -28,6 +29,7 @@ class User extends Model<UserAttributes, UserCreationAttributes> implements User
   public password!: string;   // Password of the user
   public numToken!: number;   // Number of tokens for the user
   public isAdmin!: boolean;   // Indicates if the user is an admin
+  public jobIds!: string[];
 
   // Automatically managed fields by Sequelize
   public id!: number;
@@ -61,6 +63,11 @@ User.init(
     isAdmin: {
       type: DataTypes.BOOLEAN,
       allowNull: false, // Required field
+    },
+    jobIds: {
+      type: DataTypes.ARRAY(DataTypes.STRING),
+      allowNull: false, // Required field
+      defaultValue: [],
     },
   },
   {

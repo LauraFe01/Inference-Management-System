@@ -2,13 +2,11 @@ import { Request, Response, NextFunction } from 'express';
 import path from 'path';
 import { getDecodedToken } from '../Utils/token_utils';
 import { updateToken } from '../Utils/utils';
-import { User } from '../init_database';
 import UserDAOApplication from '../DAO/userDao';
 import { SpectrogramCreationAttributes } from '../Model/spectrogram';
 import DatasetDAOApplication from '../DAO/datasetDao';
 import SpectrogramDAOApplication from '../DAO/spectrogramDao';
 import AdmZip from 'adm-zip';
-import fs from 'fs/promises';
 import ErrorFactory, { ErrorType } from '../Errors/errorFactory';
 import db from '../Config/db_config';
 
@@ -22,7 +20,7 @@ export const spectrogramController = {
   addSpectrogram: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { datasetName } = req.body;
-      const result = await db.transaction(async (transaction) => {
+      await db.transaction(async (transaction) => {
   
       if (!req.file || !datasetName) {
         throw ErrorFactory.createError(ErrorType.MissingParameterError, 'Missing required fields (file, datasetName) in the body');
@@ -45,7 +43,6 @@ export const spectrogramController = {
           const userObj = await userApp.getUser(userId);
   
           const tokenRemaining = updateToken('uploadImage', userObj!, 1);
-          console.log("token",tokenRemaining)
           if (tokenRemaining < 0 || !userObj) {
             throw ErrorFactory.createError(ErrorType.TokenError);
           }
@@ -77,7 +74,7 @@ export const spectrogramController = {
   uploadFile: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { datasetName } = req.body;
-      const result = await db.transaction(async (transaction) => {
+      await db.transaction(async (transaction) => {
 
       if (!req.file || !datasetName) {
         throw ErrorFactory.createError(ErrorType.MissingParameterError, 'Missing required fields (file, datasetName)');
@@ -103,7 +100,6 @@ export const spectrogramController = {
         const zipEntries = zip.getEntries();
         const datasetID = datasetData.id;
         const numEntries = zipEntries.length;
-        console.log(zipEntries.length)
 
         const tokenRemaining = updateToken('uploadZip', userObj!, numEntries);
 
@@ -114,10 +110,9 @@ export const spectrogramController = {
         await userApp.updateUser(userObj, { numToken: tokenRemaining }, transaction);
         try {
           for (const zipEntry of zipEntries) {
-            let filename = zipEntry.entryName;
+            const filename = zipEntry.entryName;
             const basename = path.basename(filename);
-            console.log(basename)
-
+            
             if (zipEntry.entryName.endsWith('.png') && !zipEntry.entryName.startsWith('__MACOSX/')) {
               const bufferData = zipEntry.getData();
               const newSpectrogram: SpectrogramCreationAttributes = {

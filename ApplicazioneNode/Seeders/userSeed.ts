@@ -3,8 +3,8 @@ import { hashPasswords } from '../Utils/utils';
 
 // Initial data for users to be seeded into the database
 const users = [
-  { email: 'user1@example.com', password: 'user1', numToken: 10, isAdmin: true },
-  { email: 'user2@example.com', password: 'user2', numToken: 10, isAdmin: false },
+  { email: 'user@example.com', password: 'user', numToken: 100, isAdmin: false },
+  { email: 'admin@example.com', password: 'admin', numToken: 100, isAdmin: true },
 ];
 
 /**

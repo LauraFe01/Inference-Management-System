@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { CustomError } from './customErrors';
 import { MulterError } from 'multer';
-import ErrorFactory, { ErrorType } from './errorFactory';
 
 /**
  * Express middleware to handle errors.

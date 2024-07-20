@@ -8,19 +8,12 @@ import { updateToken } from '../Utils/utils';
 import { User } from '../init_database';
 import { inferenceQueue } from '../Config/inferenceQueue_config';
 import '../Worker/inferenceWorker'; // Assuming this imports a worker for inference processing
-import { QueueEvents } from 'bullmq';
-import { redisOptions } from '../Config/redis_config';
 import ErrorFactory, { ErrorType } from '../Errors/errorFactory';
 import db from '../Config/db_config';
 
 const datasetApp = new DatasetDAOApplication();
 const userApp = new UserDAOApplication();
 const spectrogramDao = new SpectrogramDAOApplication();
-const queueEvents = new QueueEvents('Inference', {
-  connection: {
-    host: redisOptions.host,
-    port: redisOptions.port
-  }});
 
 export const datasetController = {
   createEmptyDataset: async (req: Request, res: Response, next: NextFunction) => {
@@ -125,7 +118,7 @@ export const datasetController = {
 
       const datasetName = req.params.datasetName;
       const userData = getDecodedToken(req);
-      const result = await db.transaction(async (transaction) => {
+      await db.transaction(async (transaction) => {
 
       if (!userData) {
         throw ErrorFactory.createError(ErrorType.NotFoundError, 'User not found');
@@ -134,6 +127,7 @@ export const datasetController = {
       if (typeof userData !== 'string') {
         const userId = userData.id;
         const userObj = await userApp.getUser(userId);
+        const jobIdsArray = userObj?.jobIds
         const dataset = await datasetApp.getByName(datasetName, userId);
 
         if (!dataset) {
@@ -141,24 +135,25 @@ export const datasetController = {
         }
 
         const spectrograms = await spectrogramDao.getAllSpectrogramsByDataset(dataset.id);
-        console.log(spectrograms)
         const numSpectrograms = spectrograms.length;
         const tokenRemaining = updateToken("inference", userObj!, numSpectrograms);
 
         if (tokenRemaining >= 0 && userObj) {
-          const updateValues: Partial<User> = { numToken: tokenRemaining };
+
           try {
             // Add inference job to queue
             const job = await inferenceQueue.add('Perform Inference', { modelId, spectrograms });
             const jobId = job.id;
-
-            res.json({ message: 'Inference added to the queue with id:', jobId });
+            const idArray = [...(jobIdsArray || []), jobId];
+            const jobArray: string[] = idArray as string[];
+            const updateValues: Partial<User> = { numToken: tokenRemaining, jobIds: jobArray };
+            await userApp.updateUser(userObj, updateValues, transaction); 
+            res.status(202).json({ message: 'Inference added to the queue with id:', jobId });
           } catch (error) {
-            console.error('Error during the request to Flask:', error);
             throw ErrorFactory.createError(ErrorType.InternalServerError, 'Error during the request to Flask');
           }
 
-          await userApp.updateUser(userObj, updateValues, transaction); // Update user tokens
+           // Update user tokens
         } else {
           const job = await inferenceQueue.add('Aborted', { reason: 'Insufficient tokens' });
           res.status(401).json({ status: 'Aborted', error: 'Insufficient tokens. Aborted.', jobId: job.id });
@@ -174,41 +169,63 @@ export const datasetController = {
   getInferenceStatus: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const jobId = req.params.jobId;
-
-      if (!jobId) {
-        throw ErrorFactory.createError(ErrorType.MissingParameterError, 'Missing required fields in body (jobId)');
-      } else if (jobId.length === 0) {
-        throw ErrorFactory.createError(ErrorType.ValidationError, 'No Job found with that id!');
+      const userData = getDecodedToken(req);
+  
+      if (!userData) {
+        throw ErrorFactory.createError(ErrorType.NotFoundError, 'User not found');
       }
-
-      const job = await inferenceQueue.getJob(jobId);
-      if (!job) {
-        throw ErrorFactory.createError(ErrorType.NotFoundError, 'Job not found');
-      }
-
-      if (job.name === 'Aborted') {
-        res.json({ status: 'Aborted', reason: job.data.reason });
-      } else if (await job.isCompleted()) {
-        res.json({ status: 'Completed', result: job.returnvalue });
-      } else if (await job.isFailed()) {
-        if (job.failedReason === 'Job aborted') {
-          res.json({ status: 'Aborted' });
-        } else {
-          res.status(500).json({ status: 'Failed', failedReason: job.failedReason });
+  
+      if (typeof userData !== 'string') {
+        const userId = userData.id;
+        const userObj = await userApp.getUser(userId);
+  
+        if (!userObj) {
+          throw ErrorFactory.createError(ErrorType.NotFoundError, 'User data not found');
         }
-      } else if (await job.isActive()) {
-        res.json({ status: 'Running' });
-      } else if (await job.isWaiting()) {
-        res.json({ status: 'Pending' });
-      } else if (await job.isDelayed()) {
-        res.json({ status: 'Delayed' });
+  
+        const jobs = userObj?.jobIds || [];
+  
+        if (!jobId) {
+          throw ErrorFactory.createError(ErrorType.MissingParameterError, 'Missing required fields in body (jobId)');
+        } else if (jobId.length === 0) {
+          throw ErrorFactory.createError(ErrorType.ValidationError, 'No Job found with that id!');
+        } else if (!jobs.includes(jobId)) {
+          throw ErrorFactory.createError(ErrorType.NotFoundError, 'JobId does not belong to the user');
+        }
+  
+        const job = await inferenceQueue.getJob(jobId);
+  
+        if (!job) {
+          throw ErrorFactory.createError(ErrorType.NotFoundError, 'Job not found');
+        }
+  
+        if (job.name === 'Aborted') {
+          res.json({ status: 'Aborted', reason: job.data.reason });
+        } else if (await job.isCompleted()) {
+          res.json({ status: 'Completed', result: job.returnvalue });
+        } else if (await job.isFailed()) {
+          if (job.failedReason === 'Job aborted') {
+            res.json({ status: 'Aborted' });
+          } else {
+            res.status(500).json({ status: 'Failed', failedReason: job.failedReason });
+          }
+        } else if (await job.isActive()) {
+          res.json({ status: 'Running' });
+        } else if (await job.isWaiting()) {
+          res.json({ status: 'Pending' });
+        } else if (await job.isDelayed()) {
+          res.json({ status: 'Delayed' });
+        } else {
+          res.json({ status: 'Unknown' });
+        }
       } else {
-        res.json({ status: 'Unknown' });
+        throw ErrorFactory.createError(ErrorType.NotFoundError, 'Invalid user data');
       }
     } catch (error) {
       next(error);
     }
   },
+  
  
   getAllDatasets: async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -220,10 +237,10 @@ export const datasetController = {
           throw ErrorFactory.createError(ErrorType.NotFoundError, 'User does not have any datasets yet');
         }
         const combinedJson: { dataset: Dataset; spectrograms: string[] }[] = [];
-        for (let dataset of datasets) {
+        for (const dataset of datasets) {
           const spectrograms = await spectrogramDao.getAllSpectrogramsByDataset(dataset.id)
           const spectrogramNames: string[] = spectrograms.map(s => s.name);
-          let datasetObject = {
+          const datasetObject = {
             dataset: dataset,
             spectrograms: spectrogramNames
           };

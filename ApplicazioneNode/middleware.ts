@@ -1,9 +1,8 @@
 import jwt from 'jsonwebtoken';
-import express, { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import JWT_config from './Config/JWT_config';
 import ErrorFactory, { ErrorType } from './Errors/errorFactory';
 
-var app = express();
 
 /**
  * Middleware function to authenticate and verify JWT token from request headers.

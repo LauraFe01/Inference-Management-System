@@ -1,7 +1,6 @@
 import { Dao } from './dao';
 import Dataset from '../Model/dataset';
 import { DatasetCreationAttributes } from '../Model/dataset';
-import { UniqueConstraintError } from 'sequelize';
 import ErrorFactory, { ErrorType } from '../Errors/errorFactory';
 import { arraysEqual } from '../Utils/utils';
 
