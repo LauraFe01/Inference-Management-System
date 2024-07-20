@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { getDecodedToken } from '../Utils/token_utils';
-import { DatasetCreationAttributes } from '../Model/dataset';
+import Dataset, { DatasetCreationAttributes } from '../Model/dataset';
 import DatasetDAOApplication from '../DAO/datasetDao';
 import UserDAOApplication from '../DAO/userDao';
 import SpectrogramDAOApplication from '../DAO/spectrogramDao';
@@ -219,7 +219,7 @@ export const datasetController = {
         if (!datasets || datasets.length === 0) {
           throw ErrorFactory.createError(ErrorType.NotFoundError, 'User does not have any datasets yet');
         }
-        let combinedJson = [{}];
+        const combinedJson: { dataset: Dataset; spectrograms: string[] }[] = [];
         for (let dataset of datasets) {
           const spectrograms = await spectrogramDao.getAllSpectrogramsByDataset(dataset.id)
           const spectrogramNames: string[] = spectrograms.map(s => s.name);

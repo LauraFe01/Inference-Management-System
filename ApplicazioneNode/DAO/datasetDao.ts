@@ -65,33 +65,44 @@ class DatasetDaoImpl implements Dao<Dataset> {
    */
   async update(dataset: Dataset, ...params: any[]): Promise<void> {
     const [updateValues] = params;
-
+  
     if (updateValues.id || updateValues.userId) {
       throw ErrorFactory.createError(ErrorType.FieldsNotUpdatable, 'id and userId cannot be updated!');
     }
-
-    if (updateValues.name) {
-      // Check if a dataset with the same name already exists for the user
+  
+    if (updateValues.name === "" ) {
+      throw ErrorFactory.createError(ErrorType.ValidationError, 'DatasetName cannot be an empty string!');
+    }
+  
+    // Funzione per confrontare solo i campi presenti
+    function hasChanges(existing: Dataset, updates: any): boolean {
+      if (updates.name !== undefined && existing.name !== updates.name) return true;
+      if (updates.description !== undefined && existing.description !== updates.description) return true;
+      if (updates.tags !== undefined && !arraysEqual(existing.tags, updates.tags)) return true;
+      return false;
+    }
+  
+    // Trova il dataset esistente con lo stesso nome per l'utente
+    if (updateValues.name){
       const existingDataset = await Dataset.findOne({
         where: {
           name: updateValues.name,
           userId: dataset.userId
         }
       });
-
+    
+      // Controlla se esiste un dataset con lo stesso nome
       if (existingDataset && existingDataset.name !== dataset.name) {
         throw ErrorFactory.createError(ErrorType.ValidationError, `Dataset name '${existingDataset.name}' already exists for this user.`);
       }
-
-      // Check if there's nothing new to update
-      if (existingDataset && existingDataset.name === updateValues.name &&
-          existingDataset.description === updateValues.description &&
-          arraysEqual(existingDataset.tags, updateValues.tags)) {
-        throw ErrorFactory.createError(ErrorType.ValidationError, 'Nothing new to update!');
-      }
     }
-
-    // Perform the update in the database
+  
+    // Confronta i valori aggiornati solo se sono presenti
+    if (!hasChanges(dataset, updateValues)) {
+      throw ErrorFactory.createError(ErrorType.ValidationError, 'Nothing new to update!');
+    }
+  
+    // Applica gli aggiornamenti
     await dataset.update(updateValues);
   }
 

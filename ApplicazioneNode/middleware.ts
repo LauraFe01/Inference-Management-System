@@ -1,10 +1,7 @@
 import jwt from 'jsonwebtoken';
 import express, { Request, Response, NextFunction } from 'express';
-import DatasetDAOApplication from './DAO/datasetDao';
-import { getDecodedToken } from './Utils/token_utils';
 import JWT_config from './Config/JWT_config';
 import ErrorFactory, { ErrorType } from './Errors/errorFactory';
-import { MulterError } from 'multer';
 
 var app = express();
 
@@ -29,7 +26,6 @@ function authMiddleware(req: Request, res: Response, next: NextFunction) {
     res.locals.decodedToken = decodedToken;
     next();
   } catch (error) {
-    console.error('Error verifying token:', error);
     throw ErrorFactory.createError(ErrorType.UnauthorizedError, 'Authorization token not correct');
   }
 }
@@ -67,21 +63,5 @@ function checkValidJson(err: any, req: Request, res: Response, next: NextFunctio
   next();
 }
 
-/**
- * Middleware function to check if only a single file is uploaded using multer.
- * @param err - Error object thrown by multer.
- * @param req - Express request object.
- * @param res - Express response object.
- * @param next - Next function to pass control to the next middleware.
- * @throws {Error} - Throws MultiFilesError if more than one file is uploaded.
- */
-function singleFileCheck(err: any, req: Request, res: Response, next: NextFunction) {
-  if (err instanceof MulterError) {
-    if (err.code === 'LIMIT_UNEXPECTED_FILE') {
-      throw ErrorFactory.createError(ErrorType.MultiFilesError, 'Only one file allowed');
-    }
-  }
-  next();
-}
 
-export { authMiddleware, isAdminMiddleware, checkValidJson, singleFileCheck };
+export { authMiddleware, isAdminMiddleware, checkValidJson };

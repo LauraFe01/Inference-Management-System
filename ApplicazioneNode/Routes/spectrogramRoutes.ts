@@ -1,5 +1,5 @@
 import express from 'express';
-import { authMiddleware, singleFileCheck } from '../middleware';
+import { authMiddleware} from '../middleware';
 import { spectrogramController } from '../Controller/spectrogramController';
 import multer from 'multer';
 
@@ -14,7 +14,7 @@ const upload = multer({ storage: storage });
  * Requires authentication middleware and checks for a single file upload.
  * Uses multer to handle file upload with field name 'file'.
  */
-router.post('/spectrogram', authMiddleware, singleFileCheck, upload.single('file'), spectrogramController.addSpectrogram);
+router.post('/spectrogram', authMiddleware,  upload.single('file'),  spectrogramController.addSpectrogram);
 
 /**
  * POST /api/uploadFilesFromZip
@@ -22,6 +22,6 @@ router.post('/spectrogram', authMiddleware, singleFileCheck, upload.single('file
  * Requires authentication middleware and checks for a single file upload.
  * Uses multer to handle file upload with field name 'file'.
  */
-router.post('/uploadFilesFromZip', authMiddleware, singleFileCheck, upload.single('file'), spectrogramController.uploadFile);
+router.post('/uploadFilesFromZip', authMiddleware, upload.single('file'), spectrogramController.uploadFile);
 
 export default router;

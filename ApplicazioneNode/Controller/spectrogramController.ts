@@ -103,6 +103,7 @@ export const spectrogramController = {
         const zipEntries = zip.getEntries();
         const datasetID = datasetData.id;
         const numEntries = zipEntries.length;
+        console.log(zipEntries.length)
 
         const tokenRemaining = updateToken('uploadZip', userObj!, numEntries);
 
@@ -115,6 +116,7 @@ export const spectrogramController = {
           for (const zipEntry of zipEntries) {
             let filename = zipEntry.entryName;
             const basename = path.basename(filename);
+            console.log(basename)
 
             if (zipEntry.entryName.endsWith('.png') && !zipEntry.entryName.startsWith('__MACOSX/')) {
               const bufferData = zipEntry.getData();
