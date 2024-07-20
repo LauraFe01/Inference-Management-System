@@ -146,9 +146,13 @@ In alternativa si può eseguire build e run del progetto insieme con il comando:
 il database è già fornito con i dati minimali per l'utilizzo, in particolare troviamo gli utenti:
 
 ```
-    { email: 'user1@example.com', password: 'user1', numToken: 10, isAdmin: true },
-    { email: 'user2@example.com', password: 'user2', numToken: 10, isAdmin: false }
+    { email: 'user@example.com', password: 'user', numToken: 100, isAdmin: false },
+    { email: 'admin@example.com', password: 'admin', numToken: 100, isAdmin: true },
+
 ```
+
+Le password per ciascun utente vengono hashate e salvate nel database.
+
 Se si desidera resettare il database lo si può fare impostando `await db.sync({ force: false });` con force: true in _init_database.ts_, per poter ripopolare il database bisogna scommentare l'istruzione `seed()` collocata alla riga 25 della classe _server.ts_
 
 ## Rotte
@@ -694,3 +698,5 @@ All'interno del body, come _form-data_, deve essere contenuto
     "statusCode": 201
 }
 ```
+
+Il codice è stato sottoposto ad una valutazione di correttezza con typescript-eslint.
