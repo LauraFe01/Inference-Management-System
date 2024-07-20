@@ -11,6 +11,7 @@ import * as dotenv from 'dotenv';
 import errorHandler from './Errors/errorHandler';
 import { checkValidJson } from './middleware';
 import seed from './Seeders/userSeed';
+import { cleanQueue } from './Utils/utils';
 
 // Load environment variables from .env file
 dotenv.config();
@@ -23,6 +24,9 @@ const port: number = Number(process.env.SERVER_PORT);
 
 // Command to populate the database
 // seed()
+
+//Command to clean queue
+// cleanQueue()
 
 // Configure the application to use body-parser for JSON requests
 app.use(bodyParser.json());

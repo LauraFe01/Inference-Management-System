@@ -120,6 +120,7 @@ export const spectrogramController = {
                 data: bufferData,
                 datasetId: datasetID,
               };
+              
               await spectrogramDao.addSpectrogram(newSpectrogram, transaction);
 
             }

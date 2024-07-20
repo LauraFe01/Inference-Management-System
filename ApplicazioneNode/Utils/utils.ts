@@ -1,5 +1,7 @@
+import { inferenceQueue } from "../Config/inferenceQueue_config";
 import { User, UserAttributes } from "../Model/user";
 import bcrypt from 'bcryptjs';
+import fs from 'fs/promises';
 
 /**
  * Calculates the remaining tokens after deducting the tokens used based on the operation type.
@@ -58,4 +60,8 @@ export async function hashPasswords(users: UserAttributes[]): Promise<void> {
       }
     }
   }
-  
+
+
+export async function cleanQueue(): Promise<void>{
+    await inferenceQueue.obliterate();
+}
